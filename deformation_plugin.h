@@ -8,7 +8,7 @@
 
 class deformation_plugin : public igl::opengl::glfw::imgui::ImGuiPlugin
 {
-private:
+public:
 	bool isChecking_SelfIntersection = false;
 	float flippedFaces_epsilon = 0.01;
 	float SelfIntersection_epsilon = 0.001;
@@ -66,7 +66,7 @@ public:
 	~deformation_plugin(){}
 
 	// callbacks
-	//IGL_INLINE virtual void draw_viewer_menu() override;
+	void draw_viewer_menu___();
 	IGL_INLINE virtual void init(igl::opengl::glfw::Viewer *_viewer) override;
 	IGL_INLINE virtual void post_resize(int w, int h) override;
 	IGL_INLINE virtual bool mouse_move(int mouse_x, int mouse_y) override;
