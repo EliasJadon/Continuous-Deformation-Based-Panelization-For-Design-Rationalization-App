@@ -51,6 +51,7 @@ IGL_INLINE void deformation_plugin::init(igl::opengl::glfw::Viewer *_viewer)
 	Dragged_vertex_color = GREEN_COLOR;
 	model_color = GREY_COLOR;
 	text_color = BLACK_COLOR;
+	isPluginInitialized = true;
 	glfwMaximizeWindow(viewer->window);
 	load_first_mesh(modelName, original_V, original_F);
 }
@@ -1021,7 +1022,7 @@ void deformation_plugin::add_output()
 
 IGL_INLINE void deformation_plugin::post_resize(int w, int h)
 {
-	if (!viewer)
+	if (!isPluginInitialized || !viewer)
 		return;
 	if (view == app_utils::View::HORIZONTAL) 
 	{

@@ -25,6 +25,7 @@ public:
 	float neighbor_distance, brush_radius;
 	bool isUpdateAll;
 	bool isMinimizerRunning, IsMouseDraggingAnyWindow;
+	bool isPluginInitialized = false;
 	int faceColoring_type;
 	float Clustering_MSE_Threshold = 0.001;
 	app_utils::ClusteringType clusteringType = app_utils::ClusteringType::NO_CLUS;
