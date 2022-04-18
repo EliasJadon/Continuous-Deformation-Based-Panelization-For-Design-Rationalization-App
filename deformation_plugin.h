@@ -9,6 +9,8 @@
 class deformation_plugin : public igl::opengl::glfw::imgui::ImGuiPlugin
 {
 public:
+	Eigen::MatrixXd original_V;
+	Eigen::MatrixXi original_F;
 	bool isChecking_SelfIntersection = false;
 	float flippedFaces_epsilon = 0.01;
 	float SelfIntersection_epsilon = 0.001;
@@ -19,7 +21,6 @@ public:
 	bool CollapsingHeader_curr[9], CollapsingHeader_prev[9], CollapsingHeader_change;
 	bool outputs_window, results_window, energies_window;
 	OptimizationUtils::InitSphereAuxVariables initSphereAuxVariables;
-	bool isLoadNeeded, isModelLoaded;
 	float Max_Distortion;
 	float neighbor_distance, brush_radius;
 	bool isUpdateAll;
@@ -51,7 +52,7 @@ public:
 	float prev_camera_zoom;
 	Eigen::Vector3f prev_camera_translation;
 	Eigen::Quaternionf prev_trackball_angle;
-	std::string modelName, modelPath;
+	std::string modelName;
 	int inputCoreID, inputModelID;
 	app_utils::View view;
 
@@ -66,7 +67,7 @@ public:
 	~deformation_plugin(){}
 
 	// callbacks
-	void draw_viewer_menu___();
+	void load_first_mesh(const std::string& name, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F);
 	IGL_INLINE virtual void init(igl::opengl::glfw::Viewer *_viewer) override;
 	IGL_INLINE virtual void post_resize(int w, int h) override;
 	IGL_INLINE virtual bool mouse_move(int mouse_x, int mouse_y) override;
@@ -117,7 +118,7 @@ public:
 	void change_minimizer_type(Cuda::OptimizerType type);
 	void draw_brush_sphere();
 	void load_new_model(const std::string modelpath);
-	void Update_view();
+	void update_core_settings(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F);
 	void update_data_from_minimizer();
 	
 	//Start/Stop the minimizer Thread

@@ -9,7 +9,7 @@ public:
 	~FabricationMenu(){}
 	IGL_INLINE virtual void draw_viewer_menu() override {
 		deformation_plugin* dp = (deformation_plugin*)plugin;
-		if (dp->isModelLoaded && dp->ui.status != app_utils::UserInterfaceOptions::NONE)
+		if (dp->ui.status != app_utils::UserInterfaceOptions::NONE)
 		{
 			dp->CollapsingHeader_user_interface();
 			dp->Draw_output_window();
@@ -19,20 +19,8 @@ public:
 		}
 		float w = ImGui::GetContentRegionAvail().x;
 		float p = ImGui::GetStyle().FramePadding.x;
-		if (ImGui::Button("load##mesh", ImVec2((w - p) / 2.f, 0)))
-		{
-			dp->modelPath = igl::file_dialog_open();
-			dp->isLoadNeeded = true;
-		}
-		if (dp->isLoadNeeded)
-		{
-			dp->load_new_model(dp->modelPath);
-			dp->isLoadNeeded = false;
-		}
-		if (!dp->isModelLoaded)
-			return;
-		ImGui::SameLine();
-		if (ImGui::Button("save##mesh", ImVec2((w - p) / 2.f, 0)))
+		
+		if (ImGui::Button("save##mesh"))
 			viewer->open_dialog_save_mesh();
 
 		ImGui::Combo("active output", (int*)(&dp->ActiveOutput), app_utils::build_outputs_list(dp->Outputs.size()));

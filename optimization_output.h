@@ -27,9 +27,9 @@ public:
 
 
 	OptimizationOutput(
-		igl::opengl::glfw::Viewer* viewer,
-		const Cuda::OptimizerType Optimizer_type,
-		const OptimizationUtils::LineSearch linesearchType);
+		const int CoreID,
+		const int meshID,
+		igl::opengl::glfw::Viewer* viewer);
 	~OptimizationOutput() = default;
 	double getRadiusOfSphere(int index);
 	Eigen::VectorXd getRadiusOfSphere();

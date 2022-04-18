@@ -22,20 +22,16 @@ deformation_plugin::deformation_plugin(){
 IGL_INLINE void deformation_plugin::init(igl::opengl::glfw::Viewer *_viewer)
 {
 	ImGuiPlugin::init(_viewer);
-	if (!_viewer)
-		return;
 	for (int i = 0; i < 7; i++)
 		CollapsingHeader_prev[i] = CollapsingHeader_curr[i] = false;
 	UserInterface_UpdateAllOutputs = false;
 	CollapsingHeader_change = false;
 	neighbor_distance = brush_radius = 0.3;
 	initSphereAuxVariables = OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS;
-	isLoadNeeded = false;
 	IsMouseDraggingAnyWindow = false;
 	isMinimizerRunning = false;
 	energies_window = results_window = outputs_window = true;
 	neighbor_Type = app_utils::Neighbor_Type::CURR_FACE;
-	isModelLoaded = false;
 	isUpdateAll = true;
 	face_coloring_Type = app_utils::Face_Colors::NO_COLORS;
 	clustering_brightness_w = 0.65;
@@ -55,58 +51,69 @@ IGL_INLINE void deformation_plugin::init(igl::opengl::glfw::Viewer *_viewer)
 	Dragged_vertex_color = GREEN_COLOR;
 	model_color = GREY_COLOR;
 	text_color = BLACK_COLOR;
-	//update input viewer
-	inputCoreID = viewer->core_list[0].id;
-	viewer->core(inputCoreID).background_color = Eigen::Vector4f(1, 1, 1, 0);
-	viewer->core(inputCoreID).is_animating = true;
-	viewer->core(inputCoreID).lighting_factor = 0.5;
-	//Load multiple views
-	Outputs.push_back(OptimizationOutput(viewer, optimizer_type, linesearch_type));
-	core_size = 1.0 / (Outputs.size() + 1.0);
-
-	//maximize window
-	//glfwMaximizeWindow(viewer->window);
+	load_first_mesh(modelName, original_V, original_F);
 }
 
-void deformation_plugin::load_new_model(const std::string modelpath) 
-{
-	if (isModelLoaded)
-		clear_sellected_faces_and_vertices();
-	modelPath = modelpath;
-	if (modelPath.length() == 0)
-		return;
-	modelName = app_utils::ExtractModelName(modelPath);
-	stop_all_minimizers_threads();
-	if (isModelLoaded) 
-	{
-		//remove previous data
-		while (Outputs.size() > 0)
-			remove_output(0);
-		viewer->load_mesh_from_file(modelPath.c_str());
-		viewer->erase_mesh(0);
-	}
-	else 
-		viewer->load_mesh_from_file(modelPath.c_str());
-	inputModelID = viewer->data_list[0].id;
-	for (int i = 0; i < Outputs.size(); i++)
-	{
-		viewer->load_mesh_from_file(modelPath.c_str());
-		Outputs[i].ModelID = viewer->data_list[i + 1].id;
-		init_objective_functions(i);
-	}
-	if (isModelLoaded)
-		add_output();
-	viewer->core(inputCoreID).align_camera_center(InputModel().V, InputModel().F);
-	for (int i = 0; i < Outputs.size(); i++)
-		viewer->core(Outputs[i].CoreID).align_camera_center(OutputModel(i).V, OutputModel(i).F);
+void deformation_plugin::load_first_mesh(const std::string& name, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
+	modelName = name;
+	original_V = V;
+	original_F = F;
 	
-	//set rotation type to 3D mode
-	viewer->core(inputCoreID).trackball_angle = Eigen::Quaternionf::Identity();
-	viewer->core(inputCoreID).orthographic = false;
-	viewer->core(inputCoreID).set_rotation_type(igl::opengl::ViewerCore::RotationType(1));
-	isModelLoaded = true;
-	isLoadNeeded = false;
+	assert((viewer->data().F.rows() == 0 && viewer->data().V.rows() == 0) && "Error! Invalid state\n");
+	assert(viewer->data_list.size() == 1);
+	assert(viewer->core_list.size() == 1);
+	
+	inputModelID = viewer->data_list[0].id;
+	viewer->data(inputModelID).clear();
+	viewer->data(inputModelID).set_mesh(V, F);
+	viewer->data(inputModelID).compute_normals();
+	viewer->data(inputModelID).uniform_colors(
+		Eigen::Vector3d(51.0 / 255.0, 43.0 / 255.0, 33.3 / 255.0),
+		Eigen::Vector3d(255.0 / 255.0, 228.0 / 255.0, 58.0 / 255.0),
+		Eigen::Vector3d(255.0 / 255.0, 235.0 / 255.0, 80.0 / 255.0));
+	inputCoreID = viewer->core_list[0].id;
+	
+	Outputs.clear();
+	add_output();
+	assert(viewer->data_list.size() == 2);
+	assert(viewer->core_list.size() == 2);
+	assert(Outputs.size() == 1);
 }
+
+//void deformation_plugin::load_new_model() 
+//{
+//	if (isModelLoaded)
+//		clear_sellected_faces_and_vertices();
+//	stop_all_minimizers_threads();
+//	if (isModelLoaded) 
+//	{
+//		//remove previous data
+//		while (Outputs.size() > 0)
+//			remove_output(0);
+//		viewer->load_mesh_from_file(modelPath.c_str());
+//		viewer->erase_mesh(0);
+//	}
+//	else 
+//		viewer->load_mesh_from_file(modelPath.c_str());
+//	inputModelID = viewer->data_list[0].id; ///////
+//	for (int i = 0; i < Outputs.size(); i++)
+//	{
+//		viewer->load_mesh_from_file(modelPath.c_str());
+//		Outputs[i].ModelID = viewer->data_list[i + 1].id;
+//		init_objective_functions(i);
+//	}
+//	if (isModelLoaded)
+//		add_output();
+//	viewer->core(inputCoreID).align_camera_center(InputModel().V, InputModel().F);
+//	for (int i = 0; i < Outputs.size(); i++)
+//		viewer->core(Outputs[i].CoreID).align_camera_center(OutputModel(i).V, OutputModel(i).F);
+//	
+//	//set rotation type to 3D mode
+//	viewer->core(inputCoreID).trackball_angle = Eigen::Quaternionf::Identity();
+//	viewer->core(inputCoreID).orthographic = false;
+//	viewer->core(inputCoreID).set_rotation_type(igl::opengl::ViewerCore::RotationType(1));
+//	isModelLoaded = true;
+//}
 
 void deformation_plugin::CollapsingHeader_update()
 {
@@ -631,74 +638,75 @@ void deformation_plugin::CollapsingHeader_models(igl::opengl::ViewerData& data)
 
 void deformation_plugin::Draw_energies_window()
 {
-	//if (!energies_window)
-	//	return;
-	//ImGui::SetNextWindowPos(energies_window_position);
-	//ImGui::Begin("Energies & Timing", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-	//int id = 0;
-	//ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.0f, 1.0f));
-	//if (ImGui::Button(("Add one more " + modelName).c_str()))
-	//	add_output();
-	//ImGui::PopStyleColor();
-	//
-	////add automatic lambda change
-	//if (ImGui::BeginTable("Lambda table", 12, ImGuiTableFlags_Resizable))
-	//{
-	//	ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("Max Update", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("On/Off", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("Start from", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("Stop at", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("#iter//lambda", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("#iter", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("Curr Time [ms]", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("Avg Time [ms]", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("Total Time [m]", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("lineSearch step size", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableSetupColumn("lineSearch #iter", ImGuiTableColumnFlags_WidthStretch);
-	//	ImGui::TableAutoHeaders();
-	//	ImGui::Separator();
-	//	ImGui::TableNextRow();
-	//	ImGui::PushItemWidth(80);
-	//	for (auto&out : Outputs) {
-	//		ImGui::PushID(id++);
-	//		const int  i64_zero = 0, i64_max = 100000.0;
-	//		ImGui::Text((modelName + std::to_string(out.ModelID)).c_str());
-	//		ImGui::TableNextCell();
-	//		ImGui::Checkbox("##Max_Update", &out.minimizer->isUpdateLambdaWhenConverge);
-	//		ImGui::TableNextCell();
-	//		ImGui::Checkbox("##On/Off", &out.minimizer->isAutoLambdaRunning);
-	//		ImGui::TableNextCell();
-	//		ImGui::DragInt("##From", &(out.minimizer->autoLambda_from), 1, i64_zero, i64_max);
-	//		ImGui::TableNextCell();
-	//		ImGui::DragInt("##count", &(out.minimizer->autoLambda_count), 1, i64_zero, i64_max, "2^%d");
-	//		ImGui::TableNextCell();
-	//		ImGui::DragInt("##jump", &(out.minimizer->autoLambda_jump), 1, 1, i64_max);
-	//		
-	//		ImGui::TableNextCell();
-	//		ImGui::Text(std::to_string(out.minimizer->getNumiter()).c_str());
-	//		ImGui::TableNextCell();
-	//		ImGui::Text(std::to_string(out.minimizer->timer_curr).c_str());
-	//		ImGui::TableNextCell();
-	//		ImGui::Text(std::to_string(out.minimizer->timer_avg).c_str());
-	//		ImGui::TableNextCell();
+	if (!energies_window)
+		return;
+	ImGui::SetNextWindowPos(energies_window_position);
+	//ImGui::SetNextWindowSize(ImVec2(20, 30));
+	ImGui::Begin("Energies & Timing", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+	int id = 0;
+	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.6f, 0.0f, 1.0f));
+	if (ImGui::Button(("Add one more " + modelName).c_str()))
+		add_output();
+	ImGui::PopStyleColor();
 
-	//		double tot_time = out.minimizer->timer_sum / 1000;
-	//		int sec = int(tot_time) % 60;
-	//		int min = (int(tot_time) - sec) / 60;
+	//add automatic lambda change
+	if (ImGui::BeginTable("Lambda table", 12, ImGuiTableFlags_Resizable))
+	{
+		ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Max Update", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("On/Off", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Start from", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Stop at", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("#iter//lambda", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("#iter", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Curr Time [ms]", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Avg Time [ms]", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("Total Time [m]", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("lineSearch step size", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableSetupColumn("lineSearch #iter", ImGuiTableColumnFlags_WidthStretch);
+		//ImGui::TableAutoHeaders();
+		ImGui::Separator();
+		ImGui::PushItemWidth(80);
+		for (auto&out : Outputs) {
+			ImGui::TableNextRow();
+			ImGui::PushID(id++);
+			const int  i64_zero = 0, i64_max = 100000.0;
+			ImGui::Text((modelName + std::to_string(out.ModelID)).c_str());
+			ImGui::TableNextColumn();
+			ImGui::Checkbox("##Max_Update", &out.minimizer->isUpdateLambdaWhenConverge);
+			ImGui::TableNextColumn();
+			ImGui::Checkbox("##On/Off", &out.minimizer->isAutoLambdaRunning);
+			ImGui::TableNextColumn();
+			ImGui::DragInt("##From", &(out.minimizer->autoLambda_from), 1, i64_zero, i64_max);
+			ImGui::TableNextColumn();
+			ImGui::DragInt("##count", &(out.minimizer->autoLambda_count), 1, i64_zero, i64_max, "2^%d");
+			ImGui::TableNextColumn();
+			ImGui::DragInt("##jump", &(out.minimizer->autoLambda_jump), 1, 1, i64_max);
+			
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(out.minimizer->getNumiter()).c_str());
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(out.minimizer->timer_curr).c_str());
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(out.minimizer->timer_avg).c_str());
+			ImGui::TableNextColumn();
 
-	//		ImGui::Text((std::to_string(min)+":" +std::to_string(sec)).c_str());
-	//		ImGui::TableNextCell();
-	//		ImGui::Text(("2^" + std::to_string(int(log2(out.minimizer->init_step_size)))).c_str());
-	//		ImGui::TableNextCell();
-	//		ImGui::Text(std::to_string(out.minimizer->linesearch_numiterations).c_str());
-	//		ImGui::PopID();
-	//		ImGui::TableNextRow();
-	//	}
-	//	ImGui::PopItemWidth();
-	//	ImGui::EndTable();
-	//}
-	//
+			double tot_time = out.minimizer->timer_sum / 1000;
+			int sec = int(tot_time) % 60;
+			int min = (int(tot_time) - sec) / 60;
+
+			ImGui::Text((std::to_string(min)+":" +std::to_string(sec)).c_str());
+			ImGui::TableNextColumn();
+			ImGui::Text(("2^" + std::to_string(int(log2(out.minimizer->init_step_size)))).c_str());
+			ImGui::TableNextColumn();
+			ImGui::Text(std::to_string(out.minimizer->linesearch_numiterations).c_str());
+			ImGui::PopID();
+			ImGui::TableNextRow();
+		}
+		ImGui::PopItemWidth();
+		ImGui::EndTable();
+	}
+	
 	//if (Outputs.size() != 0) {
 	//	if (ImGui::BeginTable("Unconstrained weights table", Outputs[0].totalObjective->objectiveList.size() + 3, ImGuiTableFlags_Resizable))
 	//	{
@@ -816,10 +824,10 @@ void deformation_plugin::Draw_energies_window()
 	//		ImGui::EndTable();
 	//	}
 	//}
-	//ImVec2 w_size = ImGui::GetWindowSize();
-	//energies_window_position = ImVec2(0.5 * global_screen_size[0] - 0.5 * w_size[0], global_screen_size[1] - w_size[1]);
-	////close the window
-	//ImGui::End();
+	ImVec2 w_size = ImGui::GetWindowSize();
+	energies_window_position = ImVec2(0.5 * global_screen_size[0] - 0.5 * w_size[0], global_screen_size[1] - w_size[1]);
+	//close the window
+	ImGui::End();
 }
 
 void deformation_plugin::Draw_output_window()
@@ -998,22 +1006,27 @@ void deformation_plugin::remove_output(const int output_index)
 void deformation_plugin::add_output() 
 {
 	stop_all_minimizers_threads();
-	Outputs.push_back(OptimizationOutput(viewer, optimizer_type,linesearch_type));
-	viewer->load_mesh_from_file(modelPath.c_str());
-	Outputs[Outputs.size() - 1].ModelID = viewer->data_list[Outputs.size()].id;
-	init_objective_functions(Outputs.size() - 1);
-	//Update the scene
-	viewer->core(inputCoreID).align_camera_center(InputModel().V, InputModel().F);
-	viewer->core(inputCoreID).is_animating = true;
-	for (int i = 0; i < Outputs.size(); i++) 
-	{
-		viewer->core(Outputs[i].CoreID).align_camera_center(OutputModel(i).V, OutputModel(i).F);
-		viewer->core(Outputs[i].CoreID).is_animating = true;
-	}
+	const int index = Outputs.size();
+	const int coreID = viewer->append_core(Eigen::Vector4f(0, 0, 0, 0) /*viewport*/);
+	const int meshID = viewer->append_mesh();
+	Outputs.push_back(OptimizationOutput(coreID, meshID, viewer));
 	core_size = 1.0 / (Outputs.size() + 1.0);
+	
+	viewer->data(Outputs[index].ModelID).clear();
+	viewer->data(Outputs[index].ModelID).set_mesh(original_V, original_F);
+	viewer->data(Outputs[index].ModelID).compute_normals();
+	viewer->data(Outputs[index].ModelID).uniform_colors(
+		Eigen::Vector3d(51.0 / 255.0, 43.0 / 255.0, 33.3 / 255.0),
+		Eigen::Vector3d(255.0 / 255.0, 228.0 / 255.0, 58.0 / 255.0),
+		Eigen::Vector3d(255.0 / 255.0, 235.0 / 255.0, 80.0 / 255.0));
+	init_objective_functions(index);
+	update_core_settings(original_V, original_F);
 	int frameBufferWidth, frameBufferHeight;
 	glfwGetFramebufferSize(viewer->window, &frameBufferWidth, &frameBufferHeight);
-	post_resize(frameBufferWidth, frameBufferHeight);
+	post_resize(frameBufferWidth, frameBufferHeight);	
+
+	assert(Outputs.size() == (viewer->data_list.size() - 1));
+	assert(Outputs.size() == (viewer->core_list.size() - 1));
 }
 
 IGL_INLINE void deformation_plugin::post_resize(int w, int h)
@@ -1075,7 +1088,7 @@ IGL_INLINE void deformation_plugin::post_resize(int w, int h)
 
 IGL_INLINE bool deformation_plugin::mouse_move(int mouse_x, int mouse_y)
 {
-	if (!isModelLoaded || IsMouseDraggingAnyWindow)
+	if (IsMouseDraggingAnyWindow)
 		return true;	
 	if (ui.isChoosingCluster()) {
 		pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point);
@@ -1136,7 +1149,7 @@ std::vector<std::pair<OptimizationOutput&, int>> deformation_plugin::listOfOutpu
 
 IGL_INLINE bool deformation_plugin::mouse_scroll(float delta_y) 
 {
-	if (!isModelLoaded || IsMouseDraggingAnyWindow || ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+	if (IsMouseDraggingAnyWindow || ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
 		return true;
 	if (ui.isBrushing()) {
 		brush_radius += delta_y * 0.005;
@@ -1248,18 +1261,6 @@ IGL_INLINE bool deformation_plugin::mouse_down(int button, int modifier)
 
 IGL_INLINE bool deformation_plugin::key_pressed(unsigned int key, int modifiers) 
 {
-	if ((key == 'a' || key == 'A') && modifiers == 1)
-	{
-		modelPath = OptimizationUtils::ProjectPath() + "\\models\\InputModels\\from_2k_to_10k\\island.off";
-		isLoadNeeded = true;
-	}
-	if ((key == 's' || key == 'S') && modifiers == 1) {
-		modelPath = OptimizationUtils::ProjectPath() + "\\models\\InputModels\\Bear_without_eyes.off";
-		isLoadNeeded = true;
-	}
-	if (!isModelLoaded)
-		return ImGuiPlugin::key_pressed(key, modifiers);
-
 	if ((key == 'c' || key == 'C') && modifiers == 1)
 		clear_sellected_faces_and_vertices();
 	if ((key == 'x' || key == 'X') && modifiers == 1) {
@@ -1407,12 +1408,10 @@ void deformation_plugin::draw_brush_sphere()
 
 IGL_INLINE bool deformation_plugin::pre_draw() 
 {
-	if (!isModelLoaded)
-		return ImGuiPlugin::pre_draw();
 	for (auto& out : Outputs)
 		if (out.minimizer->progressed)
 			update_data_from_minimizer();
-	Update_view();
+	//update_core_settings();
 	update_parameters_for_all_cores();
 
 	//Update Faces Colors
@@ -1489,11 +1488,20 @@ void deformation_plugin::change_minimizer_type(Cuda::OptimizerType type)
 	stop_all_minimizers_threads();
 	init_aux_variables();
 	for (int i = 0; i < Outputs.size(); i++)
-		Outputs[i].updateActiveMinimizer(optimizer_type);
+		Outputs[i].minimizer->Optimizer_type = optimizer_type;
 }
 
-void deformation_plugin::Update_view() 
+void deformation_plugin::update_core_settings(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F)
 {
+	for (int i = 0; i < viewer->core_list.size(); i++) {
+		viewer->core_list[i].align_camera_center(V, F);
+		viewer->core_list[i].trackball_angle = Eigen::Quaternionf::Identity();
+		viewer->core_list[i].orthographic = false;
+		viewer->core_list[i].set_rotation_type(igl::opengl::ViewerCore::RotationType(1));
+		viewer->core_list[i].is_animating = true;
+		viewer->core_list[i].background_color = Eigen::Vector4f(1, 1, 1, 0);
+		viewer->core_list[i].lighting_factor = 0.5;
+	}
 	for (auto& data : viewer->data_list)
 		for (auto& out : Outputs)
 			data.copy_options(viewer->core(inputCoreID), viewer->core(out.CoreID));
@@ -1503,8 +1511,6 @@ void deformation_plugin::Update_view()
 	InputModel().set_visible(true, inputCoreID);
 	for (int i = 0; i < Outputs.size(); i++)
 		OutputModel(i).set_visible(true, Outputs[i].CoreID);
-	for (auto& core : viewer->core_list)
-		core.is_animating = true;
 }
 
 void deformation_plugin::follow_and_mark_selected_faces() 
@@ -1822,9 +1828,13 @@ void deformation_plugin::init_objective_functions(const int index)
 {
 	Eigen::MatrixXd V = OutputModel(index).V;
 	Eigen::MatrixX3i F = OutputModel(index).F;
-	stop_all_minimizers_threads();
 	if (V.rows() == 0 || F.rows() == 0)
 		return;
+
+	Outputs[index].minimizer = std::make_shared<Minimizer>(Outputs[index].CoreID);
+	Outputs[index].minimizer->lineSearch_type = linesearch_type;
+	Outputs[index].minimizer->Optimizer_type = optimizer_type;
+
 	// initialize the energy
 	std::cout << console_color::yellow << "-------Energies, begin-------" << std::endl;
 	std::shared_ptr <AuxBendingNormal> auxBendingNormal = std::make_unique<AuxBendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);

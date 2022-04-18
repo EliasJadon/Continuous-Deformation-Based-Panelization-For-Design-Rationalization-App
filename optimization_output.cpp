@@ -1,19 +1,12 @@
 #include "optimization_output.h"
 
 OptimizationOutput::OptimizationOutput(
-	igl::opengl::glfw::Viewer* viewer,
-	const Cuda::OptimizerType optimizerType,
-	const OptimizationUtils::LineSearch linesearchType)
+	const int CoreID,
+	const int meshID,
+	igl::opengl::glfw::Viewer* viewer)
 {
-	//update viewer
-	CoreID = viewer->append_core(Eigen::Vector4f::Zero());
-	viewer->core(CoreID).background_color = Eigen::Vector4f(1, 1, 1, 0);
-	viewer->core(CoreID).is_animating = true;
-	viewer->core(CoreID).lighting_factor = 0.5;
-	// Initialize minimizer thread
-	minimizer = std::make_shared<Minimizer>(CoreID);
-	minimizer->lineSearch_type = linesearchType;
-	updateActiveMinimizer(optimizerType);
+	this->CoreID = CoreID;
+	this->ModelID = meshID;
 	showFacesNorm = showSphereEdges = showNormEdges = showTriangleCenters = showSphereCenters = false;
 }
 
@@ -239,10 +232,10 @@ void OptimizationOutput::initMinimizers(
 	);
 }
 
-void OptimizationOutput::updateActiveMinimizer(const Cuda::OptimizerType optimizerType)
-{
-	minimizer->Optimizer_type = optimizerType;
-}
+//void OptimizationOutput::updateActiveMinimizer(const Cuda::OptimizerType optimizerType)
+//{
+//	minimizer->Optimizer_type = optimizerType;
+//}
 
 Eigen::MatrixX4d OptimizationOutput::getValues(const app_utils::Face_Colors face_coloring_Type) {
 	Eigen::MatrixX3d N = getFacesNormals();
