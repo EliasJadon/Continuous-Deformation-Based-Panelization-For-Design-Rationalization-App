@@ -51,6 +51,7 @@ IGL_INLINE void deformation_plugin::init(igl::opengl::glfw::Viewer *_viewer)
 	Dragged_vertex_color = GREEN_COLOR;
 	model_color = GREY_COLOR;
 	text_color = BLACK_COLOR;
+	glfwMaximizeWindow(viewer->window);
 	load_first_mesh(modelName, original_V, original_F);
 }
 
@@ -79,41 +80,6 @@ void deformation_plugin::load_first_mesh(const std::string& name, const Eigen::M
 	assert(viewer->core_list.size() == 2);
 	assert(Outputs.size() == 1);
 }
-
-//void deformation_plugin::load_new_model() 
-//{
-//	if (isModelLoaded)
-//		clear_sellected_faces_and_vertices();
-//	stop_all_minimizers_threads();
-//	if (isModelLoaded) 
-//	{
-//		//remove previous data
-//		while (Outputs.size() > 0)
-//			remove_output(0);
-//		viewer->load_mesh_from_file(modelPath.c_str());
-//		viewer->erase_mesh(0);
-//	}
-//	else 
-//		viewer->load_mesh_from_file(modelPath.c_str());
-//	inputModelID = viewer->data_list[0].id; ///////
-//	for (int i = 0; i < Outputs.size(); i++)
-//	{
-//		viewer->load_mesh_from_file(modelPath.c_str());
-//		Outputs[i].ModelID = viewer->data_list[i + 1].id;
-//		init_objective_functions(i);
-//	}
-//	if (isModelLoaded)
-//		add_output();
-//	viewer->core(inputCoreID).align_camera_center(InputModel().V, InputModel().F);
-//	for (int i = 0; i < Outputs.size(); i++)
-//		viewer->core(Outputs[i].CoreID).align_camera_center(OutputModel(i).V, OutputModel(i).F);
-//	
-//	//set rotation type to 3D mode
-//	viewer->core(inputCoreID).trackball_angle = Eigen::Quaternionf::Identity();
-//	viewer->core(inputCoreID).orthographic = false;
-//	viewer->core(inputCoreID).set_rotation_type(igl::opengl::ViewerCore::RotationType(1));
-//	isModelLoaded = true;
-//}
 
 void deformation_plugin::CollapsingHeader_update()
 {
@@ -652,23 +618,37 @@ void deformation_plugin::Draw_energies_window()
 	//add automatic lambda change
 	if (ImGui::BeginTable("Lambda table", 12, ImGuiTableFlags_Resizable))
 	{
-		ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Max Update", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("On/Off", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Start from", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Stop at", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("#iter//lambda", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("#iter", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Curr Time [ms]", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Avg Time [ms]", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("Total Time [m]", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("lineSearch step size", ImGuiTableColumnFlags_WidthStretch);
-		ImGui::TableSetupColumn("lineSearch #iter", ImGuiTableColumnFlags_WidthStretch);
+		ImGui::TableNextRow();
+		ImGui::TableNextColumn();
+		ImGui::Text("ID");
+		ImGui::TableNextColumn();
+		ImGui::Text("Max Update");
+		ImGui::TableNextColumn();
+		ImGui::Text("On/Off");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("Start from");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("Stop at");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("#iter//lambda");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("#iter");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("Curr Time [ms]");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("Avg Time [ms]");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("Total Time [m]");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("lineSearch step size");
+		ImGui::TableNextColumn(); 
+		ImGui::Text("lineSearch #iter");
 		//ImGui::TableAutoHeaders();
 		ImGui::Separator();
 		ImGui::PushItemWidth(80);
 		for (auto&out : Outputs) {
 			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
 			ImGui::PushID(id++);
 			const int  i64_zero = 0, i64_max = 100000.0;
 			ImGui::Text((modelName + std::to_string(out.ModelID)).c_str());
@@ -701,129 +681,139 @@ void deformation_plugin::Draw_energies_window()
 			ImGui::TableNextColumn();
 			ImGui::Text(std::to_string(out.minimizer->linesearch_numiterations).c_str());
 			ImGui::PopID();
-			ImGui::TableNextRow();
 		}
 		ImGui::PopItemWidth();
 		ImGui::EndTable();
 	}
+
+	ImGui::Text("");
 	
-	//if (Outputs.size() != 0) {
-	//	if (ImGui::BeginTable("Unconstrained weights table", Outputs[0].totalObjective->objectiveList.size() + 3, ImGuiTableFlags_Resizable))
-	//	{
-	//		ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthStretch);
-	//		ImGui::TableSetupColumn("Run", ImGuiTableColumnFlags_WidthStretch);
-	//		for (auto& obj : Outputs[0].totalObjective->objectiveList) {
-	//			ImGui::TableSetupColumn(obj->name.c_str(), ImGuiTableColumnFlags_WidthStretch);
-	//		}
-	//		ImGui::TableAutoHeaders();
-	//		ImGui::Separator();
-	//		
-	//		ImGui::TableNextRow();
-	//		for (int i = 0; i < Outputs.size(); i++) 
-	//		{
-	//			ImGui::Text((modelName + std::to_string(Outputs[i].ModelID)).c_str());
-	//			ImGui::TableNextCell();
-	//			ImGui::PushID(id++);
-	//			if (ImGui::Button("On/Off")) {
-	//				if (Outputs[i].minimizer->is_running)
-	//					stop_one_minimizer_thread(Outputs[i]);
-	//				else
-	//					start_one_minimizer_thread(Outputs[i]);
-	//			}
-	//			ImGui::PopID();
-	//			ImGui::TableNextCell();
-	//			ImGui::PushItemWidth(80);
-	//			for (auto& obj : Outputs[i].totalObjective->objectiveList) {
-	//				ImGui::PushID(id++);
-	//				ImGui::DragFloat("##w", &(obj->w), 0.05f, 0.0f, 100000.0f);
-	//				auto SD = std::dynamic_pointer_cast<SDenergy>(obj);
-	//				auto fR = std::dynamic_pointer_cast<fixRadius>(obj);
+	if (Outputs.size() != 0) {
+		if (ImGui::BeginTable("Unconstrained weights table", Outputs[0].totalObjective->objectiveList.size() + 3, ImGuiTableFlags_Resizable))
+		{
+			ImGui::Separator();
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn();
+			ImGui::Text("ID");
+			ImGui::TableNextColumn();
+			ImGui::Text("Run");
+			for (auto& obj : Outputs[0].totalObjective->objectiveList) {
+				ImGui::TableNextColumn();
+				ImGui::Text(obj->name.c_str());
+			}
+			ImGui::TableNextColumn();
+			ImGui::Text("Remove Mesh");
+			//ImGui::TableAutoHeaders();
+			ImGui::Separator();
+			
+			
+			for (int i = 0; i < Outputs.size(); i++) 
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::Text((modelName + std::to_string(Outputs[i].ModelID)).c_str());
+				ImGui::TableNextColumn();
+				ImGui::PushID(id++);
+				if (ImGui::Button("On/Off")) {
+					if (Outputs[i].minimizer->is_running)
+						stop_one_minimizer_thread(Outputs[i]);
+					else
+						start_one_minimizer_thread(Outputs[i]);
+				}
+				ImGui::PopID();
+				ImGui::TableNextColumn();
+				ImGui::PushItemWidth(80);
+				for (auto& obj : Outputs[i].totalObjective->objectiveList) {
+					ImGui::PushID(id++);
+					ImGui::DragFloat("##w", &(obj->w), 0.05f, 0.0f, 100000.0f);
+					auto SD = std::dynamic_pointer_cast<SDenergy>(obj);
+					auto fR = std::dynamic_pointer_cast<fixRadius>(obj);
 
-	//				auto ABN = std::dynamic_pointer_cast<AuxBendingNormal>(obj);
-	//				auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(obj);
-	//				auto BN = std::dynamic_pointer_cast<BendingNormal>(obj);
+					auto ABN = std::dynamic_pointer_cast<AuxBendingNormal>(obj);
+					auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(obj);
+					auto BN = std::dynamic_pointer_cast<BendingNormal>(obj);
 
-	//				if (obj->w) {
-	//					if (fR != NULL) {
-	//						ImGui::DragInt("min", &(fR->min));
-	//						fR->min = fR->min < 1 ? 1 : fR->min;
-	//						ImGui::DragInt("max", &(fR->max));
-	//						fR->max = fR->max > fR->min ? fR->max : fR->min + 1;
-	//						ImGui::DragFloat("alpha", &(fR->alpha), 0.001);
-	//						Eigen::VectorXd Radiuses = Outputs[ActiveOutput].getRadiusOfSphere();
-	//						if (ImGui::Button("update Alpha")) {
-	//							fR->alpha = fR->max / Radiuses.maxCoeff();
-	//						}
-	//						ImGui::Text(("R max: " + std::to_string(Radiuses.maxCoeff() * fR->alpha)).c_str());
-	//						ImGui::Text(("R min: " + std::to_string(Radiuses.minCoeff() * fR->alpha)).c_str());
-	//						
-	//					}
+					if (obj->w) {
+						if (fR != NULL) {
+							ImGui::DragInt("min", &(fR->min));
+							fR->min = fR->min < 1 ? 1 : fR->min;
+							ImGui::DragInt("max", &(fR->max));
+							fR->max = fR->max > fR->min ? fR->max : fR->min + 1;
+							ImGui::DragFloat("alpha", &(fR->alpha), 0.001);
+							Eigen::VectorXd Radiuses = Outputs[ActiveOutput].getRadiusOfSphere();
+							if (ImGui::Button("update Alpha")) {
+								fR->alpha = fR->max / Radiuses.maxCoeff();
+							}
+							ImGui::Text(("R max: " + std::to_string(Radiuses.maxCoeff() * fR->alpha)).c_str());
+							ImGui::Text(("R min: " + std::to_string(Radiuses.minCoeff() * fR->alpha)).c_str());
+							
+						}
 
-	//					if (ABN != NULL)
-	//						ImGui::Combo("Function", (int*)(&(ABN->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
-	//					if (BN != NULL)
-	//						ImGui::Combo("Function", (int*)(&(BN->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
-	//					if (AS != NULL)
-	//						ImGui::Combo("Function", (int*)(&(AS->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
-	//					
-	//					if (ABN != NULL && ABN->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
-	//						ImGui::Text(("2^" + std::to_string(int(log2(ABN->get_SigmoidParameter())))).c_str());
-	//						ImGui::SameLine();
-	//						if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-	//						{
-	//							ABN->Inc_SigmoidParameter();
-	//						}
-	//						ImGui::SameLine();
-	//						if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-	//						{
-	//							ABN->Dec_SigmoidParameter();
-	//						}
-	//						const double  f64_zero = 0, f64_max = 100000.0;
-	//						ImGui::DragScalar("w1", ImGuiDataType_Double, &(ABN->w1), 0.05f, &f64_zero, &f64_max);
-	//						ImGui::DragScalar("w2", ImGuiDataType_Double, &(ABN->w2), 0.05f, &f64_zero, &f64_max);
-	//						ImGui::DragScalar("w3", ImGuiDataType_Double, &(ABN->w3), 0.05f, &f64_zero, &f64_max);
-	//					}
-	//					if (AS != NULL && AS->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
-	//						ImGui::Text(("2^" + std::to_string(int(log2(AS->get_SigmoidParameter())))).c_str());
-	//						ImGui::SameLine();
-	//						if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-	//						{
-	//							AS->Inc_SigmoidParameter();
-	//						}
-	//						ImGui::SameLine();
-	//						if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-	//						{
-	//							AS->Dec_SigmoidParameter();
-	//						}
-	//						const double  f64_zero = 0, f64_max = 100000.0;
-	//						ImGui::DragScalar("w1", ImGuiDataType_Double, &(AS->w1), 0.05f, &f64_zero, &f64_max);
-	//						ImGui::DragScalar("w2", ImGuiDataType_Double, &(AS->w2), 0.05f, &f64_zero, &f64_max);
-	//					}
-	//					if (BN != NULL && BN->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
-	//						ImGui::Text(("2^" + std::to_string(int(log2(BN->get_SigmoidParameter())))).c_str());
-	//						ImGui::SameLine();
-	//						if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-	//							BN->Inc_SigmoidParameter();
-	//						ImGui::SameLine();
-	//						if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
-	//							BN->Dec_SigmoidParameter();
-	//					}
-	//				}
-	//				ImGui::TableNextCell();
-	//				ImGui::PopID();
-	//			}
-	//			ImGui::PushID(id++);
-	//			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
-	//			if (Outputs.size() > 1 && ImGui::Button("Remove"))
-	//				remove_output(i);
-	//			ImGui::PopStyleColor();
-	//			ImGui::PopID();
-	//			ImGui::PopItemWidth();
-	//			ImGui::TableNextRow();
-	//		}	
-	//		ImGui::EndTable();
-	//	}
-	//}
+						if (ABN != NULL)
+							ImGui::Combo("Function", (int*)(&(ABN->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
+						if (BN != NULL)
+							ImGui::Combo("Function", (int*)(&(BN->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
+						if (AS != NULL)
+							ImGui::Combo("Function", (int*)(&(AS->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
+						
+						if (ABN != NULL && ABN->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
+							ImGui::Text(("2^" + std::to_string(int(log2(ABN->get_SigmoidParameter())))).c_str());
+							ImGui::SameLine();
+							if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+							{
+								ABN->Inc_SigmoidParameter();
+							}
+							ImGui::SameLine();
+							if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+							{
+								ABN->Dec_SigmoidParameter();
+							}
+							const double  f64_zero = 0, f64_max = 100000.0;
+							ImGui::DragScalar("w1", ImGuiDataType_Double, &(ABN->w1), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w2", ImGuiDataType_Double, &(ABN->w2), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w3", ImGuiDataType_Double, &(ABN->w3), 0.05f, &f64_zero, &f64_max);
+						}
+						if (AS != NULL && AS->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
+							ImGui::Text(("2^" + std::to_string(int(log2(AS->get_SigmoidParameter())))).c_str());
+							ImGui::SameLine();
+							if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+							{
+								AS->Inc_SigmoidParameter();
+							}
+							ImGui::SameLine();
+							if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+							{
+								AS->Dec_SigmoidParameter();
+							}
+							const double  f64_zero = 0, f64_max = 100000.0;
+							ImGui::DragScalar("w1", ImGuiDataType_Double, &(AS->w1), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w2", ImGuiDataType_Double, &(AS->w2), 0.05f, &f64_zero, &f64_max);
+						}
+						if (BN != NULL && BN->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
+							ImGui::Text(("2^" + std::to_string(int(log2(BN->get_SigmoidParameter())))).c_str());
+							ImGui::SameLine();
+							if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+								BN->Inc_SigmoidParameter();
+							ImGui::SameLine();
+							if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+								BN->Dec_SigmoidParameter();
+						}
+					}
+					ImGui::TableNextColumn();
+					ImGui::PopID();
+				}
+				ImGui::PushID(id++);
+				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.6f, 0.0f, 0.0f, 1.0f));
+				if (Outputs.size() > 1 && ImGui::Button("Remove"))
+					remove_output(i);
+				ImGui::PopStyleColor();
+				ImGui::PopID();
+				ImGui::PopItemWidth();
+				//ImGui::TableNextRow();
+			}	
+			ImGui::EndTable();
+		}
+	}
 	ImVec2 w_size = ImGui::GetWindowSize();
 	energies_window_position = ImVec2(0.5 * global_screen_size[0] - 0.5 * w_size[0], global_screen_size[1] - w_size[1]);
 	//close the window
