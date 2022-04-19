@@ -1402,7 +1402,6 @@ IGL_INLINE bool deformation_plugin::pre_draw()
 	for (auto& out : Outputs)
 		if (out.minimizer->progressed)
 			update_data_from_minimizer();
-	//update_core_settings();
 	update_parameters_for_all_cores();
 
 	//Update Faces Colors
@@ -1551,8 +1550,13 @@ void deformation_plugin::follow_and_mark_selected_faces()
 			Eigen::RowVector3d Pmax(P.col(0).maxCoeff(), P.col(1).maxCoeff(), P.col(2).maxCoeff());
 			for (int fi = 0; fi < P.rows(); fi++) {
 				//set the values in the range [0, 1]
-				for (int xyz = 0; xyz < 3; xyz++)
-					P(fi, xyz) = (P(fi, xyz) - Pmin(xyz)) / (Pmax(xyz) - Pmin(xyz));
+				for (int xyz = 0; xyz < 3; xyz++) {
+					double range = Pmax(xyz) - Pmin(xyz);
+					if (range < 0.01)
+						P(fi, xyz) = 0.5;
+					else
+						P(fi, xyz) = (P(fi, xyz) - Pmin(xyz)) / range;
+				}	
 				//Add Brightness according to user weight...
 				for (int col = 0; col < 3; col++)
 					P(fi, col) = (clustering_brightness_w * P(fi, col)) + (1 - clustering_brightness_w);
