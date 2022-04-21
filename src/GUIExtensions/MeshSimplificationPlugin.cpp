@@ -218,7 +218,7 @@ void MeshSimplificationPlugin::CollapsingHeader_measures() {
 				for (int oi = 0; oi < Outputs.size(); oi++) {
 					const Eigen::MatrixXd V = OutputModel(oi).V;
 					const Eigen::MatrixXi F = OutputModel(oi).F;
-					auto& AS = Outputs[oi].Energy_auxSpherePerHinge;
+					auto& AS = Outputs[oi].Energy_auxSphere;
 					Outputs[oi].flippedFaces_pairs = app_utils::getFlippedFaces(V, F, AS->hinges_faceIndex, flippedFaces_epsilon);
 				}
 			}
@@ -730,7 +730,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 					auto SD = std::dynamic_pointer_cast<SDenergy>(obj);
 					auto fR = std::dynamic_pointer_cast<fixRadius>(obj);
 
-					auto ABN = std::dynamic_pointer_cast<AuxBendingNormal>(obj);
+					auto ABN = std::dynamic_pointer_cast<AuxPlanar>(obj);
 					auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(obj);
 					auto BN = std::dynamic_pointer_cast<BendingNormal>(obj);
 
@@ -913,10 +913,10 @@ void MeshSimplificationPlugin::Draw_results_window()
 void MeshSimplificationPlugin::clear_sellected_faces_and_vertices() 
 {
 	for (auto& o : Outputs) {
-		o.Energy_auxSpherePerHinge->Clear_HingesWeights();
-		o.Energy_auxBendingNormal->Clear_HingesWeights();
-		o.Energy_BendingNormal->Clear_HingesWeights();
-		o.Energy_FixChosenVertices->clearConstraints();
+		o.Energy_auxSphere->Clear_HingesWeights();
+		o.Energy_auxPlanar->Clear_HingesWeights();
+		o.Energy_Planar->Clear_HingesWeights();
+		o.Energy_PinChosenVertices->clearConstraints();
 	}
 }
 
@@ -1089,7 +1089,7 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 		Eigen::RowVector3d vertex_pos = OutputModel(ui.Output_Index).V.row(ui.Vertex_Index);
 		Eigen::RowVector3d translation = app_utils::computeTranslation(mouse_x, ui.down_mouse_x, mouse_y, ui.down_mouse_y, vertex_pos, OutputCore(ui.Output_Index));
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index))
-			out.first.Energy_FixChosenVertices->translateConstraint(ui.Vertex_Index, translation);
+			out.first.Energy_PinChosenVertices->translateConstraint(ui.Vertex_Index, translation);
 		ui.down_mouse_x = mouse_x;
 		ui.down_mouse_y = mouse_y;
 		return true;
@@ -1098,18 +1098,18 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 		double shift = (ui.ADD_DELETE == ADD) ? ADDING_WEIGHT_PER_HINGE_VALUE : -ADDING_WEIGHT_PER_HINGE_VALUE;
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxBendingNormal->Incr_HingesWeights(brush_faces, shift);
-			out.first.Energy_BendingNormal->Incr_HingesWeights(brush_faces, shift);
-			out.first.Energy_auxSpherePerHinge->Incr_HingesWeights(brush_faces, shift);
+			out.first.Energy_auxPlanar->Incr_HingesWeights(brush_faces, shift);
+			out.first.Energy_Planar->Incr_HingesWeights(brush_faces, shift);
+			out.first.Energy_auxSphere->Incr_HingesWeights(brush_faces, shift);
 		}
 		return true;
 	}
 	if (ui.isBrushingWeightDec() && pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxBendingNormal->setOne_HingesWeights(brush_faces);
-			out.first.Energy_BendingNormal->setOne_HingesWeights(brush_faces);
-			out.first.Energy_auxSpherePerHinge->setOne_HingesWeights(brush_faces);
+			out.first.Energy_auxPlanar->setOne_HingesWeights(brush_faces);
+			out.first.Energy_Planar->setOne_HingesWeights(brush_faces);
+			out.first.Energy_auxSphere->setOne_HingesWeights(brush_faces);
 		}
 		return true;
 	}
@@ -1163,9 +1163,9 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier)
 	if (ui.isUsingDFS() && pick_vertex(output_index, vertex_index)) {
 		ui.updateVerticesListOfDFS(InputModel().F, InputModel().V.rows(), vertex_index);
 		for (auto& out : listOfOutputsToUpdate(output_index)) {
-			out.first.Energy_auxBendingNormal->setZero_HingesWeights(ui.DFS_vertices_list);
-			out.first.Energy_BendingNormal->setZero_HingesWeights(ui.DFS_vertices_list);
-			out.first.Energy_auxSpherePerHinge->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.Energy_auxPlanar->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.Energy_Planar->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.Energy_auxSphere->setZero_HingesWeights(ui.DFS_vertices_list);
 		}
 	}
 
@@ -1173,9 +1173,9 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier)
 		std::vector<int> neigh_faces = Outputs[ui.Output_Index].getNeigh(neighbor_Type, InputModel().F, ui.Face_index, neighbor_distance);
 		double shift = (ui.ADD_DELETE == ADD) ? 5 * ADDING_WEIGHT_PER_HINGE_VALUE : -5 * ADDING_WEIGHT_PER_HINGE_VALUE;
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxBendingNormal->Incr_HingesWeights(neigh_faces, shift);
-			out.first.Energy_BendingNormal->Incr_HingesWeights(neigh_faces, shift);
-			out.first.Energy_auxSpherePerHinge->Incr_HingesWeights(neigh_faces, shift);
+			out.first.Energy_auxPlanar->Incr_HingesWeights(neigh_faces, shift);
+			out.first.Energy_Planar->Incr_HingesWeights(neigh_faces, shift);
+			out.first.Energy_auxSphere->Incr_HingesWeights(neigh_faces, shift);
 		}
 	}
 	ui.clear();
@@ -1201,14 +1201,14 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_down(int button, int modifier)
 	{
 		if (pick_vertex(ui.Output_Index, ui.Vertex_Index) && ui.Output_Index != INPUT_MODEL_SCREEN) {
 			for (auto& out : listOfOutputsToUpdate(ui.Output_Index))
-				out.first.Energy_FixChosenVertices->insertConstraint(ui.Vertex_Index, OutputModel(out.second).V);
+				out.first.Energy_PinChosenVertices->insertConstraint(ui.Vertex_Index, OutputModel(out.second).V);
 			ui.isActive = true;
 		}
 	}
 	if (ui.status == app_utils::UserInterfaceOptions::FIX_VERTICES && RightClick) {
 		if (pick_vertex(ui.Output_Index, ui.Vertex_Index) && ui.Output_Index != INPUT_MODEL_SCREEN)
 			for (auto& out : listOfOutputsToUpdate(ui.Output_Index))
-				out.first.Energy_FixChosenVertices->eraseConstraint(ui.Vertex_Index);
+				out.first.Energy_PinChosenVertices->eraseConstraint(ui.Vertex_Index);
 		ui.clear();
 	}
 	if (ui.status == app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_INCR && LeftClick) {
@@ -1292,9 +1292,9 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		}
 		for (OptimizationOutput& out : Outputs) {
 			std::shared_ptr<AuxSpherePerHinge> AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
-			std::shared_ptr<AuxBendingNormal> ABN = std::dynamic_pointer_cast<AuxBendingNormal>(out.totalObjective->objectiveList[1]);
+			std::shared_ptr<AuxPlanar> AP = std::dynamic_pointer_cast<AuxPlanar>(out.totalObjective->objectiveList[1]);
 			std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
-			ABN->w = 0;
+			AP->w = 0;
 			BN->w = 1.6;
 			AS->w = 0;
 		}
@@ -1310,7 +1310,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		}
 		for (OptimizationOutput& out : Outputs) {
 			std::shared_ptr<AuxSpherePerHinge> AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
-			std::shared_ptr<AuxBendingNormal> ABN = std::dynamic_pointer_cast<AuxBendingNormal>(out.totalObjective->objectiveList[1]);
+			std::shared_ptr<AuxPlanar> ABN = std::dynamic_pointer_cast<AuxPlanar>(out.totalObjective->objectiveList[1]);
 			std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
 			ABN->w = 1.6;
 			BN->w = 0;
@@ -1333,7 +1333,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 			for (auto& obj : out.totalObjective->objectiveList) 
 			{
 				std::shared_ptr<AuxSpherePerHinge> AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
-				std::shared_ptr<AuxBendingNormal> ABN = std::dynamic_pointer_cast<AuxBendingNormal>(out.totalObjective->objectiveList[1]);
+				std::shared_ptr<AuxPlanar> ABN = std::dynamic_pointer_cast<AuxPlanar>(out.totalObjective->objectiveList[1]);
 				std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
 				ABN->w = 0;
 				BN->w = 0;
@@ -1414,14 +1414,14 @@ IGL_INLINE bool MeshSimplificationPlugin::pre_draw()
 	for (int oi = 0; oi < Outputs.size(); oi++) {
 		auto& m = OutputModel(oi);
 		auto& o = Outputs[oi];
-		auto& AS = Outputs[oi].Energy_auxSpherePerHinge;
+		auto& AS = Outputs[oi].Energy_auxSphere;
 		m.point_size = 10;
 		m.clear_points();
 		m.clear_edges();
 
 		if (ui.isTranslatingVertex())
 			m.add_points(m.V.row(ui.Vertex_Index), Dragged_vertex_color.cast<double>().transpose());
-		for (auto vi : o.Energy_FixChosenVertices->getConstraintsIndices())
+		for (auto vi : o.Energy_PinChosenVertices->getConstraintsIndices())
 			m.add_points(m.V.row(vi), Fixed_vertex_color.cast<double>().transpose());
 		if (o.showFacesNorm)
 			m.add_points(o.getFacesNorm(), o.color_per_face_norm);
@@ -1516,7 +1516,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 
 		UpdateEnergyColors(i);
 		//Mark the selected faces by brush
-		auto& AS = Outputs[i].Energy_auxSpherePerHinge;
+		auto& AS = Outputs[i].Energy_auxSphere;
 		for (int hi = 0; hi < AS->mesh_indices.num_hinges; hi++) {
 			const int f0 = AS->hinges_faceIndex[hi][0];
 			const int f1 = AS->hinges_faceIndex[hi][1];
@@ -1575,7 +1575,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 				o.setFaceColors(fi, o.clustering_faces_colors.row(fi).transpose());
 		}
 		else if (face_coloring_Type == app_utils::Face_Colors::SIGMOID_PARAMETER) {
-			auto& AS = o.Energy_auxSpherePerHinge;
+			auto& AS = o.Energy_auxSphere;
 			for (int hi = 0; hi < AS->mesh_indices.num_hinges; hi++) {
 				const int f0 = AS->hinges_faceIndex[hi][0];
 				const int f1 = AS->hinges_faceIndex[hi][1]; 
@@ -1832,21 +1832,21 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 
 	// initialize the energy
 	std::cout << console_color::yellow << "-------Energies, begin-------" << std::endl;
-	std::shared_ptr <AuxBendingNormal> auxBendingNormal = std::make_unique<AuxBendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxBendingNormal = auxBendingNormal;
-	std::shared_ptr <AuxSpherePerHinge> auxSpherePerHinge = std::make_unique<AuxSpherePerHinge>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxSpherePerHinge = auxSpherePerHinge;
+	std::shared_ptr <AuxPlanar> auxPlanar = std::make_unique<AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	Outputs[index].Energy_auxPlanar = auxPlanar;
+	std::shared_ptr <AuxSpherePerHinge> auxSphere = std::make_unique<AuxSpherePerHinge>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	Outputs[index].Energy_auxSphere = auxSphere;
 	std::shared_ptr <STVK> stvk = std::make_unique<STVK>(V, F);
 	std::shared_ptr <SDenergy> sdenergy = std::make_unique<SDenergy>(V, F);
 	std::shared_ptr <FixAllVertices> fixAllVertices = std::make_unique<FixAllVertices>(V, F);
 	std::shared_ptr <fixRadius> FixRadius = std::make_unique<fixRadius>(V, F);
 	std::shared_ptr <UniformSmoothness> uniformSmoothness = std::make_unique<UniformSmoothness>(V, F);
-	std::shared_ptr <BendingNormal> bendingNormal = std::make_unique<BendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_BendingNormal = bendingNormal;
+	std::shared_ptr <BendingNormal> planar = std::make_unique<BendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	Outputs[index].Energy_Planar = planar;
 
 	//Add User Interface Energies
-	auto fixChosenVertices = std::make_shared<FixChosenConstraints>(V, F);
-	Outputs[index].Energy_FixChosenVertices = fixChosenVertices;
+	auto pinChosenVertices = std::make_shared<FixChosenConstraints>(V, F);
+	Outputs[index].Energy_PinChosenVertices = pinChosenVertices;
 
 	//init total objective
 	Outputs[index].totalObjective = std::make_shared<TotalObjective>(V, F);
@@ -1855,13 +1855,13 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	{
 		Outputs[index].totalObjective->objectiveList.push_back(move(obj));
 	};
-	add_obj(auxSpherePerHinge);
-	add_obj(auxBendingNormal);
-	add_obj(bendingNormal);
+	add_obj(auxSphere);
+	add_obj(auxPlanar);
+	add_obj(planar);
 	add_obj(stvk);
 	add_obj(sdenergy);
 	add_obj(fixAllVertices);
-	add_obj(fixChosenVertices);
+	add_obj(pinChosenVertices);
 	add_obj(FixRadius);
 	add_obj(uniformSmoothness);
 	std::cout  << "-------Energies, end-------" << console_color::white << std::endl;

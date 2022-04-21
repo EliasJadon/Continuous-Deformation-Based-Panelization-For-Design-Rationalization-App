@@ -9,10 +9,10 @@ public:
 	std::vector<std::vector<int>> clustering_faces_indices;
 	std::vector<std::pair<int, int>> SelfIntersection_pairs, flippedFaces_pairs;
 	Eigen::MatrixX3d clustering_faces_colors;
-	std::shared_ptr <AuxSpherePerHinge> Energy_auxSpherePerHinge;
-	std::shared_ptr <AuxBendingNormal> Energy_auxBendingNormal;
-	std::shared_ptr <BendingNormal> Energy_BendingNormal;
-	std::shared_ptr <FixChosenConstraints> Energy_FixChosenVertices;
+	std::shared_ptr <AuxSpherePerHinge> Energy_auxSphere;
+	std::shared_ptr <AuxPlanar> Energy_auxPlanar;
+	std::shared_ptr <BendingNormal> Energy_Planar;
+	std::shared_ptr <FixChosenConstraints> Energy_PinChosenVertices;
 	std::shared_ptr<Minimizer> minimizer;
 	std::shared_ptr<TotalObjective> totalObjective;
 	float prev_camera_zoom;

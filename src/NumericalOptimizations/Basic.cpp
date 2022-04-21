@@ -112,7 +112,7 @@ void Minimizer::RunSymmetricDirichletGradient() {
 void Minimizer::update_lambda() 
 {
 	std::shared_ptr<AuxSpherePerHinge> ASH = std::dynamic_pointer_cast<AuxSpherePerHinge>(totalObjective->objectiveList[0]);
-	std::shared_ptr<AuxBendingNormal> ABN = std::dynamic_pointer_cast<AuxBendingNormal>(totalObjective->objectiveList[1]);
+	std::shared_ptr<AuxPlanar> ABN = std::dynamic_pointer_cast<AuxPlanar>(totalObjective->objectiveList[1]);
 	std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(totalObjective->objectiveList[2]);
 	
 	if (isAutoLambdaRunning && numIteration >= autoLambda_from && !(numIteration % autoLambda_jump))
@@ -249,11 +249,11 @@ void Minimizer::value_linesearch()
 		else linesearch_StopCounter = 0;
 		if (linesearch_StopCounter >= 7) {
 			std::shared_ptr<AuxSpherePerHinge> ASH = std::dynamic_pointer_cast<AuxSpherePerHinge>(totalObjective->objectiveList[0]);
-			std::shared_ptr<AuxBendingNormal> ABN = std::dynamic_pointer_cast<AuxBendingNormal>(totalObjective->objectiveList[1]);
+			std::shared_ptr<AuxPlanar> AP = std::dynamic_pointer_cast<AuxPlanar>(totalObjective->objectiveList[1]);
 			std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(totalObjective->objectiveList[2]);
 			const double target = pow(2, -autoLambda_count);
 			ASH->Dec_SigmoidParameter(target);
-			ABN->Dec_SigmoidParameter(target);
+			AP->Dec_SigmoidParameter(target);
 			BN->Dec_SigmoidParameter(target);
 		}
 	}

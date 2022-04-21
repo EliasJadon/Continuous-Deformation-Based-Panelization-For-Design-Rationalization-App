@@ -2,7 +2,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <igl/triangle_triangle_adjacency.h>
 
-AuxBendingNormal::AuxBendingNormal(
+AuxPlanar::AuxPlanar(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunctions::Panels::AuxBasic{V,F,penaltyFunction}
@@ -11,11 +11,11 @@ AuxBendingNormal::AuxBendingNormal(
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-AuxBendingNormal::~AuxBendingNormal() {
+AuxPlanar::~AuxPlanar() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double AuxBendingNormal::value(Cuda::Array<double>& curr_x, const bool update)
+double AuxPlanar::value(Cuda::Array<double>& curr_x, const bool update)
 {
 	double value = 0;
 	for (int hi = 0; hi < num_hinges; hi++) {
@@ -51,7 +51,7 @@ double AuxBendingNormal::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-void AuxBendingNormal::gradient(Cuda::Array<double>& X, const bool update)
+void AuxPlanar::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++) {
 		grad.host_arr[i] = 0;
