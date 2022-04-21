@@ -77,7 +77,7 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	MeshSimplificationMenu menu;
+	GUIExtensions::MeshSimplificationMenu menu;
 	menu.name = "Mesh Simplification menu";
 
 	MeshSimplificationPlugin plugin;
