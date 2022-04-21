@@ -1,7 +1,8 @@
 ﻿#include "ObjectiveFunctions/Deformation/SymmetricDirichlet.h"
 
+using namespace ObjectiveFunctions::Deformation;
 
-SDenergy::SDenergy(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
+SymmetricDirichlet::SymmetricDirichlet(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "Symmetric Dirichlet";
 	w = 0.5;
@@ -20,13 +21,13 @@ SDenergy::SDenergy(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : Object
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-SDenergy::~SDenergy() {
+SymmetricDirichlet::~SymmetricDirichlet() {
 	Cuda::FreeMemory(D1d);
 	Cuda::FreeMemory(D2d);
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double SDenergy::value(Cuda::Array<double>& curr_x, const bool update) {
+double SymmetricDirichlet::value(Cuda::Array<double>& curr_x, const bool update) {
 	double value = 0;
 
 	for (int fi = 0; fi < restShapeF.rows(); fi++) {
@@ -64,7 +65,7 @@ double SDenergy::value(Cuda::Array<double>& curr_x, const bool update) {
 	return value;
 }
 
-void SDenergy::gradient(Cuda::Array<double>& X, const bool update)
+void SymmetricDirichlet::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;

@@ -728,7 +728,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 				for (auto& obj : Outputs[i].totalObjective->objectiveList) {
 					ImGui::PushID(id++);
 					ImGui::DragFloat("##w", &(obj->w), 0.05f, 0.0f, 100000.0f);
-					auto SD = std::dynamic_pointer_cast<SDenergy>(obj);
+					auto SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(obj);
 					auto fR = std::dynamic_pointer_cast<ObjectiveFunctions::Fabrication::RoundRadiuses>(obj);
 
 					auto ABN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(obj);
@@ -1839,7 +1839,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> auxSphere = std::make_unique<ObjectiveFunctions::Panels::AuxSphere>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxSphere = auxSphere;
 	std::shared_ptr <ObjectiveFunctions::Deformation::STVK> stvk = std::make_unique<ObjectiveFunctions::Deformation::STVK>(V, F);
-	std::shared_ptr <SDenergy> sdenergy = std::make_unique<SDenergy>(V, F);
+	std::shared_ptr <ObjectiveFunctions::Deformation::SymmetricDirichlet> sdenergy = std::make_unique<ObjectiveFunctions::Deformation::SymmetricDirichlet>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Deformation::PinVertices> fixAllVertices = std::make_unique<ObjectiveFunctions::Deformation::PinVertices>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Fabrication::RoundRadiuses> FixRadius = std::make_unique<ObjectiveFunctions::Fabrication::RoundRadiuses>(V, F);
 	std::shared_ptr <UniformSmoothness> uniformSmoothness = std::make_unique<UniformSmoothness>(V, F);

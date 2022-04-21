@@ -103,7 +103,7 @@ void Basic::run_new()
 void Basic::RunSymmetricDirichletGradient() {
 	halt = false;
 	while (!halt) {
-		std::shared_ptr<SDenergy> SD = std::dynamic_pointer_cast<SDenergy>(totalObjective->objectiveList[4]);
+		std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(totalObjective->objectiveList[4]);
 		if (isGradientNeeded) {
 			if (SD->w != 0)
 				SD->gradient(X, false);
@@ -159,7 +159,7 @@ void Basic::run_one_iteration_new()
 	OptimizationUtils::Timer t(&timer_sum, &timer_curr);
 	//calculate SD gradient in advance
 	isGradientNeeded = true;
-	std::shared_ptr<SDenergy> SD = std::dynamic_pointer_cast<SDenergy>(totalObjective->objectiveList[4]);
+	std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(totalObjective->objectiveList[4]);
 	
 	timer_avg = timer_sum / ++numIteration;
 	update_lambda();
@@ -169,7 +169,7 @@ void Basic::run_one_iteration_new()
 	for (int i = 0; i < totalObjective->grad.size; i++)
 		totalObjective->grad.host_arr[i] = 0;
 	for (auto& obj : totalObjective->objectiveList) {
-		std::shared_ptr<SDenergy> SD = std::dynamic_pointer_cast<SDenergy>(obj);
+		std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(obj);
 		if (obj->w != 0 && SD == NULL) {
 			obj->gradient(X, false);
 			for (int i = 0; i < totalObjective->grad.size; i++)
