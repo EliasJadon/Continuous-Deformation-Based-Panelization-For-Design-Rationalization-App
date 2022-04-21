@@ -13,13 +13,7 @@
 using namespace NumericalOptimizations;
 
 
-Basic::Basic(const int solverID)
-	:
-	solverID(solverID),
-	parameters_mutex(std::make_unique<std::mutex>()),
-	data_mutex(std::make_unique<std::shared_timed_mutex>()),
-	param_cv(std::make_unique<std::condition_variable>())
-{ }
+Basic::Basic(const int solverID) : solverID(solverID) {}
 
 void Basic::init(
 	std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
@@ -37,14 +31,13 @@ void Basic::init(
 	
 	this->F = F;
 	this->V = V;
-	this->ext_x = X0;
-	this->ext_center = center0;
-	this->ext_norm = norm0;
-	this->ext_radius = Radius0;
 	this->constantStep_LineSearch = 0.01;
 	this->totalObjective = Tobjective;
 	
 	unsigned int size = 3 * V.rows() + 7 * F.rows();
+
+	int numH = OptimizationUtils::getNumberOfHinges(F);
+	Cuda::initIndices(mesh_indices, F.rows(), V.rows(), numH);
 
 	Cuda::AllocateMemory(X, size);
 	Cuda::AllocateMemory(p, size);
@@ -77,7 +70,6 @@ void Basic::upload_x(const Eigen::VectorXd& X0)
 		X.host_arr[0 * V.rows() + 0 * F.rows() + i] = X0[i];
 	for (int i = 0; i < totalObjective->grad.size; i++)
 		curr_x.host_arr[i] = X.host_arr[i];
-	update_external_data();
 }
 
 void Basic::run()
@@ -151,7 +143,6 @@ void Basic::run_one_iteration()
 	}
 	currentEnergy = totalObjective->value(X, true);
 	linesearch();
-	update_external_data();
 }
 
 void Basic::run_one_iteration_new()
@@ -206,7 +197,6 @@ void Basic::run_one_iteration_new()
 		}
 	}
 	linesearch();
-	update_external_data();
 }
 
 
@@ -279,24 +269,7 @@ void Basic::gradNorm_linesearch()
 
 void Basic::stop()
 {
-	wait_for_parameter_update_slot();
 	halt = true;
-	release_parameter_update_slot();
-}
-
-void Basic::update_external_data()
-{
-	give_parameter_update_slot();
-	std::unique_lock<std::shared_timed_mutex> lock(*data_mutex);
-	for (int i = 0; i < 3 * V.rows(); i++)
-		ext_x[i] = X.host_arr[i];
-	for (int i = 0; i < 3 * F.rows(); i++)
-		ext_norm[i] = X.host_arr[3 * V.rows() + i];
-	for (int i = 0; i < 3 * F.rows(); i++)
-		ext_center[i] = X.host_arr[3 * V.rows() + 3 * F.rows() + i];
-	for (int i = 0; i < F.rows(); i++)
-		ext_radius[i] = X.host_arr[3 * V.rows() + 6 * F.rows() + i];
-	progressed = true;
 }
 
 void Basic::get_data(
@@ -305,36 +278,18 @@ void Basic::get_data(
 	Eigen::VectorXd& radius, 
 	Eigen::MatrixXd& norm)
 {
-	std::unique_lock<std::shared_timed_mutex> lock(*data_mutex);
-	X				= Eigen::Map<Eigen::MatrixXd>(ext_x.data(), ext_x.rows() / 3, 3);
-	center			= Eigen::Map<Eigen::MatrixXd>(ext_center.data(), ext_center.rows() / 3, 3);
-	radius			= ext_radius;
-	norm			= Eigen::Map<Eigen::MatrixXd>(ext_norm.data(), ext_norm.rows() / 3, 3);
-	progressed = false;
-}
-
-void Basic::give_parameter_update_slot()
-{
-	std::unique_lock<std::mutex> lock(*parameters_mutex);
-	params_ready_to_update = true;
-	param_cv->notify_one();
-	while (wait_for_param_update)
-	{
-		param_cv->wait(lock);
+	for (int vi = 0; vi < V.rows(); vi++) {
+		X(vi, 0) = this->X.host_arr[vi + mesh_indices.startVx];
+		X(vi, 1) = this->X.host_arr[vi + mesh_indices.startVy];
+		X(vi, 2) = this->X.host_arr[vi + mesh_indices.startVz];
 	}
-	params_ready_to_update = false;
-}
-
-void Basic::wait_for_parameter_update_slot()
-{
-	std::unique_lock<std::mutex> lock(*parameters_mutex);
-	wait_for_param_update = true;
-	while (!params_ready_to_update && is_running)
-		param_cv->wait_for(lock, std::chrono::milliseconds(50));
-}
-
-void Basic::release_parameter_update_slot()
-{
-	wait_for_param_update = false;
-	param_cv->notify_one();
+	for (int fi = 0; fi < F.rows(); fi++) {
+		center(fi, 0) = this->X.host_arr[fi + mesh_indices.startCx];
+		center(fi, 1) = this->X.host_arr[fi + mesh_indices.startCy];
+		center(fi, 2) = this->X.host_arr[fi + mesh_indices.startCz];
+		norm(fi, 0) = this->X.host_arr[fi + mesh_indices.startNx];
+		norm(fi, 1) = this->X.host_arr[fi + mesh_indices.startNy];
+		norm(fi, 2) = this->X.host_arr[fi + mesh_indices.startNz];
+		radius(fi) = this->X.host_arr[fi + mesh_indices.startR];
+	}
 }

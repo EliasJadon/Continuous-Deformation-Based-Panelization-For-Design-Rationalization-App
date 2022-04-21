@@ -1401,8 +1401,7 @@ void MeshSimplificationPlugin::draw_brush_sphere()
 IGL_INLINE bool MeshSimplificationPlugin::pre_draw() 
 {
 	for (auto& out : Outputs)
-		if (out.minimizer->progressed)
-			update_data_from_minimizer();
+		update_data_from_minimizer();
 	update_parameters_for_all_cores();
 
 	//Update Faces Colors
@@ -1747,7 +1746,7 @@ void MeshSimplificationPlugin::update_data_from_minimizer()
 {	
 	for (int i = 0; i < Outputs.size(); i++)
 	{
-		Eigen::MatrixXd V;
+		Eigen::MatrixXd V(original_V.rows(), 3);
 		auto& o = Outputs[i];
 		o.minimizer->get_data(V, o.center_of_sphere, o.radiuses, o.normals);
 		o.center_of_faces = OptimizationUtils::center_per_triangle(V, InputModel().F);

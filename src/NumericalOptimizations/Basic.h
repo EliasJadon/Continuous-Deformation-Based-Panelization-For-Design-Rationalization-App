@@ -38,16 +38,9 @@ namespace NumericalOptimizations {
 		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;
 		// Activity flags
 		std::atomic_bool is_running = { false };
-		std::atomic_bool progressed = { false };
 		std::atomic_bool isGradientNeeded = { false };
 
-
-		// Synchronization functions used by the wrapper
-		void wait_for_parameter_update_slot();
-		void release_parameter_update_slot();
-
-		// External (interface) and internal working mesh
-		Eigen::VectorXd ext_x, ext_center, ext_radius, ext_norm;
+		Cuda::indices mesh_indices;
 		Eigen::MatrixX3i F;
 		Eigen::MatrixXd V;
 		Cuda::OptimizerType Optimizer_type;
@@ -66,10 +59,6 @@ namespace NumericalOptimizations {
 		unsigned int linesearch_numiterations = 0;
 		unsigned int linesearch_StopCounter = 0;
 	private:
-		// Give the wrapper a chance to intersect gracefully
-		void give_parameter_update_slot();
-		// Updating the data after a step has been done
-		void update_external_data();
 		double currentEnergy;
 		unsigned int numIteration = 0;
 		int solverID;
@@ -79,13 +68,6 @@ namespace NumericalOptimizations {
 		void constant_linesearch();
 		double step_size;
 
-		// Mutex stuff
-		std::unique_ptr<std::shared_timed_mutex> data_mutex;
-		std::unique_ptr<std::mutex> parameters_mutex;
-		std::unique_ptr<std::condition_variable> param_cv;
-		// Synchronization structures
-		std::atomic_bool params_ready_to_update = { false };
-		std::atomic_bool wait_for_param_update = { false };
 		std::atomic_bool halt = { false };
 	};
 };
