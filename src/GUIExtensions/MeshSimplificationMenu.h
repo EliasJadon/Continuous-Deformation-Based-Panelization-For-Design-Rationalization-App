@@ -34,7 +34,7 @@ public:
 					factor = fr->alpha;
 			}
 			// get mesh data
-			OptimizationOutput o = dp->Outputs[dp->ActiveOutput];
+			MeshSimplificationData o = dp->Outputs[dp->ActiveOutput];
 			Eigen::MatrixX3d colors = o.clustering_faces_colors;
 			Eigen::MatrixXd v_out = factor * dp->OutputModel(dp->ActiveOutput).V;
 			Eigen::MatrixXd v_in = factor * dp->InputModel().V;
@@ -106,7 +106,7 @@ public:
 		ImGui::SameLine();
 		if (ImGui::Button("save planar", ImVec2((w - p) / 2.f, 0)) && dp->Outputs[dp->ActiveOutput].clustering_faces_indices.size()) {
 			// get mesh data
-			OptimizationOutput o = dp->Outputs[dp->ActiveOutput];
+			MeshSimplificationData o = dp->Outputs[dp->ActiveOutput];
 			Eigen::MatrixX3d colors = o.clustering_faces_colors;
 			Eigen::MatrixXd v_out = dp->OutputModel(dp->ActiveOutput).V;
 			Eigen::MatrixXd v_in = dp->InputModel().V;

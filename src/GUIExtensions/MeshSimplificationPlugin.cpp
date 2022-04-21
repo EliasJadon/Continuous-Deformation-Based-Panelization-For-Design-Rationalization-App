@@ -1000,7 +1000,7 @@ void MeshSimplificationPlugin::add_output()
 	const int index = Outputs.size();
 	const int coreID = viewer->append_core(Eigen::Vector4f(0, 0, 0, 0) /*viewport*/);
 	const int meshID = viewer->append_mesh();
-	Outputs.push_back(OptimizationOutput(coreID, meshID, viewer));
+	Outputs.push_back(MeshSimplificationData(coreID, meshID, viewer));
 	core_size = 1.0 / (Outputs.size() + 1.0);
 	
 	viewer->data(Outputs[index].ModelID).clear();
@@ -1125,8 +1125,8 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 	return false;
 }
 
-std::vector<std::pair<OptimizationOutput&, int>> MeshSimplificationPlugin::listOfOutputsToUpdate(const int out_index) {
-	std::vector<std::pair<OptimizationOutput&, int>> vec;
+std::vector<std::pair<MeshSimplificationData&, int>> MeshSimplificationPlugin::listOfOutputsToUpdate(const int out_index) {
+	std::vector<std::pair<MeshSimplificationData&, int>> vec;
 	if (out_index<0 || out_index>Outputs.size())
 		return {};
 	if (UserInterface_UpdateAllOutputs) {
@@ -1290,7 +1290,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 			out.showSphereEdges = out.showNormEdges = 
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
-		for (OptimizationOutput& out : Outputs) {
+		for (MeshSimplificationData& out : Outputs) {
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[0]);
 			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1] );
 			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
@@ -1308,7 +1308,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 			out.showSphereEdges = out.showNormEdges =
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
-		for (OptimizationOutput& out : Outputs) {
+		for (MeshSimplificationData& out : Outputs) {
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[0]);
 			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
 			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
@@ -1328,7 +1328,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 			out.showSphereEdges = out.showNormEdges =
 				out.showTriangleCenters = out.showFacesNorm = false;
 		}
-		for (OptimizationOutput& out : Outputs) 
+		for (MeshSimplificationData& out : Outputs) 
 		{
 			for (auto& obj : out.totalObjective->objectiveList) 
 			{
@@ -1768,7 +1768,7 @@ void MeshSimplificationPlugin::stop_all_minimizers_threads() {
 		stop_one_minimizer_thread(o);
 }
 
-void MeshSimplificationPlugin::stop_one_minimizer_thread(const OptimizationOutput o) {
+void MeshSimplificationPlugin::stop_one_minimizer_thread(const MeshSimplificationData o) {
 	if (o.minimizer->is_running)
 		o.minimizer->stop();
 	while (o.minimizer->is_running);
@@ -1780,7 +1780,7 @@ void MeshSimplificationPlugin::start_all_minimizers_threads() {
 		start_one_minimizer_thread(o);
 }
 
-void MeshSimplificationPlugin::start_one_minimizer_thread(const OptimizationOutput o) {
+void MeshSimplificationPlugin::start_one_minimizer_thread(const MeshSimplificationData o) {
 	stop_one_minimizer_thread(o);
 	std::thread minimizer_thread1 = std::thread(&NumericalOptimizations::Basic::run_new, o.minimizer.get());
 	std::thread minimizer_thread2 = std::thread(&NumericalOptimizations::Basic::RunSymmetricDirichletGradient, o.minimizer.get());

@@ -46,7 +46,7 @@ public:
 	app_utils::Face_Colors face_coloring_Type;
 	float clustering_brightness_w;
 	app_utils::Neighbor_Type neighbor_Type;
-	std::vector<OptimizationOutput> Outputs;
+	std::vector<MeshSimplificationData> Outputs;
 	float prev_camera_zoom;
 	Eigen::Vector3f prev_camera_translation;
 	Eigen::Quaternionf prev_trackball_angle;
@@ -111,7 +111,7 @@ public:
 	igl::opengl::ViewerData& OutputModel(const int index);
 	igl::opengl::ViewerCore& InputCore();
 	igl::opengl::ViewerCore& OutputCore(const int index);
-	std::vector<std::pair<OptimizationOutput&, int>> listOfOutputsToUpdate(const int out_index);
+	std::vector<std::pair<MeshSimplificationData&, int>> listOfOutputsToUpdate(const int out_index);
 
 	void change_minimizer_type(Cuda::OptimizerType type);
 	void draw_brush_sphere();
@@ -122,9 +122,9 @@ public:
 	//Start/Stop the minimizer Thread
 	void init_objective_functions(const int index);
 	void stop_all_minimizers_threads();
-	void stop_one_minimizer_thread(const OptimizationOutput o);
+	void stop_one_minimizer_thread(const MeshSimplificationData o);
 	void start_all_minimizers_threads();
-	void start_one_minimizer_thread(const OptimizationOutput o);
+	void start_one_minimizer_thread(const MeshSimplificationData o);
 	bool is_Any_Minizer_running();
 	void run_one_minimizer_iter();
 	void init_aux_variables();

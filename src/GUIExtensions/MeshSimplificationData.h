@@ -1,7 +1,7 @@
 #pragma once
 #include "Utils/GUI.h"
 
-class OptimizationOutput {
+class MeshSimplificationData {
 public:
 	Eigen::MatrixXd center_of_faces, center_of_sphere, normals;
 	Clustering_Colors clustering_colors;
@@ -26,11 +26,11 @@ public:
 
 
 
-	OptimizationOutput(
+	MeshSimplificationData(
 		const int CoreID,
 		const int meshID,
 		igl::opengl::glfw::Viewer* viewer);
-	~OptimizationOutput() = default;
+	~MeshSimplificationData() = default;
 	double getRadiusOfSphere(int index);
 	Eigen::VectorXd getRadiusOfSphere();
 	Eigen::MatrixXd getCenterOfFaces();
