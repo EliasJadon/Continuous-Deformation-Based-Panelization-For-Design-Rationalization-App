@@ -730,7 +730,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 					auto SD = std::dynamic_pointer_cast<SDenergy>(obj);
 					auto fR = std::dynamic_pointer_cast<fixRadius>(obj);
 
-					auto ABN = std::dynamic_pointer_cast<AuxPlanar>(obj);
+					auto ABN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(obj);
 					auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(obj);
 					auto BN = std::dynamic_pointer_cast<BendingNormal>(obj);
 
@@ -1291,9 +1291,9 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (OptimizationOutput& out : Outputs) {
-			std::shared_ptr<AuxSpherePerHinge> AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
-			std::shared_ptr<AuxPlanar> AP = std::dynamic_pointer_cast<AuxPlanar>(out.totalObjective->objectiveList[1]);
-			std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
+			auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
+			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
+			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
 			AP->w = 0;
 			BN->w = 1.6;
 			AS->w = 0;
@@ -1309,10 +1309,10 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (OptimizationOutput& out : Outputs) {
-			std::shared_ptr<AuxSpherePerHinge> AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
-			std::shared_ptr<AuxPlanar> ABN = std::dynamic_pointer_cast<AuxPlanar>(out.totalObjective->objectiveList[1]);
-			std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
-			ABN->w = 1.6;
+			auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
+			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
+			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
+			AP->w = 1.6;
 			BN->w = 0;
 			AS->w = 0;
 		}
@@ -1332,10 +1332,10 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		{
 			for (auto& obj : out.totalObjective->objectiveList) 
 			{
-				std::shared_ptr<AuxSpherePerHinge> AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
-				std::shared_ptr<AuxPlanar> ABN = std::dynamic_pointer_cast<AuxPlanar>(out.totalObjective->objectiveList[1]);
-				std::shared_ptr<BendingNormal> BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
-				ABN->w = 0;
+				auto AS = std::dynamic_pointer_cast<AuxSpherePerHinge>(out.totalObjective->objectiveList[0]);
+				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
+				auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
+				AP->w = 0;
 				BN->w = 0;
 				AS->w = 1.6;
 			}
@@ -1832,7 +1832,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 
 	// initialize the energy
 	std::cout << console_color::yellow << "-------Energies, begin-------" << std::endl;
-	std::shared_ptr <AuxPlanar> auxPlanar = std::make_unique<AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> auxPlanar = std::make_unique<ObjectiveFunctions::Panels::AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxPlanar = auxPlanar;
 	std::shared_ptr <AuxSpherePerHinge> auxSphere = std::make_unique<AuxSpherePerHinge>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxSphere = auxSphere;

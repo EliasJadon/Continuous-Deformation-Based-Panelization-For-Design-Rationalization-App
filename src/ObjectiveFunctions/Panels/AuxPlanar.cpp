@@ -2,6 +2,8 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <igl/triangle_triangle_adjacency.h>
 
+using namespace ObjectiveFunctions::Panels;
+
 AuxPlanar::AuxPlanar(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
