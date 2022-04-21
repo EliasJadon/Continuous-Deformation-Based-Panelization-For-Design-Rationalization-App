@@ -1,7 +1,7 @@
 #include <igl/opengl/glfw/Viewer.h>
 #include "deformation_plugin.h"
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
-#include "FabricationMenu.h"
+#include "MeshSimplificationMenu.h"
 
 #include <igl/file_dialog_open.h>
 #include <igl/readOFF.h>
@@ -78,11 +78,11 @@ int main()
 		return EXIT_FAILURE;
 	}
 
-	FabricationMenu menu;
-	menu.name = "Fabrication menu";
+	MeshSimplificationMenu menu;
+	menu.name = "Mesh Simplification menu";
 
 	deformation_plugin plugin;
-	plugin.plugin_name = "Fabrication Plugin";
+	plugin.plugin_name = "Mesh Simplification Plugin";
 	plugin.widgets.push_back(&menu);
 	plugin.original_F = F;
 	plugin.original_V = V;
@@ -90,7 +90,7 @@ int main()
 
 	igl::opengl::glfw::Viewer viewer;
 	viewer.plugins.push_back(&plugin);
-	viewer.launch(/*resizable*/ true, /*fullscreen*/ false, "Fabrication viewer");
+	viewer.launch(/*resizable*/ true, /*fullscreen*/ false, "Mesh Simplification App");
 
 	return EXIT_SUCCESS;
 }

@@ -2,11 +2,11 @@
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include "deformation_plugin.h"
 
-class FabricationMenu : public igl::opengl::glfw::imgui::ImGuiMenu
+class MeshSimplificationMenu : public igl::opengl::glfw::imgui::ImGuiMenu
 {	
 public:
-	FabricationMenu(){}
-	~FabricationMenu(){}
+	MeshSimplificationMenu(){}
+	~MeshSimplificationMenu(){}
 	IGL_INLINE virtual void draw_viewer_menu() override {
 		deformation_plugin* dp = (deformation_plugin*)plugin;
 		if (dp->ui.status != app_utils::UserInterfaceOptions::NONE)
