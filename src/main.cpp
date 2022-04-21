@@ -80,7 +80,7 @@ int main()
 	GUIExtensions::MeshSimplificationMenu menu;
 	menu.name = "Mesh Simplification menu";
 
-	MeshSimplificationPlugin plugin;
+	GUIExtensions::MeshSimplificationPlugin plugin;
 	plugin.plugin_name = "Mesh Simplification Plugin";
 	plugin.widgets.push_back(&menu);
 	plugin.original_F = F;

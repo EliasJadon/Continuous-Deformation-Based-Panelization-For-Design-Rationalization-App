@@ -14,6 +14,7 @@
 #define MAX_WEIGHT_PER_HINGE_VALUE  500.0f //50.0f*ADDING_WEIGHT_PER_HINGE_VALUE
 #define MAX_SIGMOID_PER_HINGE_VALUE  40.0f //50.0f*ADDING_WEIGHT_PER_HINGE_VALUE
 
+using namespace GUIExtensions;
 
 MeshSimplificationPlugin::MeshSimplificationPlugin(){
 	
