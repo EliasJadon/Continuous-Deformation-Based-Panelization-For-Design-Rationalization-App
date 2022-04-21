@@ -1,17 +1,19 @@
 ﻿#include "ObjectiveFunctions/Fabrication/RoundRadiuses.h"
 
-fixRadius::fixRadius(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
+using namespace ObjectiveFunctions::Fabrication;
+
+RoundRadiuses::RoundRadiuses(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "fix Radius";
 	w = 0;
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-fixRadius::~fixRadius() {
+RoundRadiuses::~RoundRadiuses() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double fixRadius::value(Cuda::Array<double>& curr_x, const bool update) {
+double RoundRadiuses::value(Cuda::Array<double>& curr_x, const bool update) {
 	double value = 0;
 	for (int fi = 0; fi < restShapeF.rows(); fi++) {
 		double R = getR(curr_x, fi);
@@ -53,7 +55,7 @@ double fixRadius::value(Cuda::Array<double>& curr_x, const bool update) {
 	return value;
 }
 
-void fixRadius::gradient(Cuda::Array<double>& X,const bool update)
+void RoundRadiuses::gradient(Cuda::Array<double>& X,const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;

@@ -729,7 +729,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 					ImGui::PushID(id++);
 					ImGui::DragFloat("##w", &(obj->w), 0.05f, 0.0f, 100000.0f);
 					auto SD = std::dynamic_pointer_cast<SDenergy>(obj);
-					auto fR = std::dynamic_pointer_cast<fixRadius>(obj);
+					auto fR = std::dynamic_pointer_cast<ObjectiveFunctions::Fabrication::RoundRadiuses>(obj);
 
 					auto ABN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(obj);
 					auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(obj);
@@ -1841,7 +1841,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	std::shared_ptr <STVK> stvk = std::make_unique<STVK>(V, F);
 	std::shared_ptr <SDenergy> sdenergy = std::make_unique<SDenergy>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Deformation::PinVertices> fixAllVertices = std::make_unique<ObjectiveFunctions::Deformation::PinVertices>(V, F);
-	std::shared_ptr <fixRadius> FixRadius = std::make_unique<fixRadius>(V, F);
+	std::shared_ptr <ObjectiveFunctions::Fabrication::RoundRadiuses> FixRadius = std::make_unique<ObjectiveFunctions::Fabrication::RoundRadiuses>(V, F);
 	std::shared_ptr <UniformSmoothness> uniformSmoothness = std::make_unique<UniformSmoothness>(V, F);
 	std::shared_ptr <BendingNormal> planar = std::make_unique<BendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_Planar = planar;

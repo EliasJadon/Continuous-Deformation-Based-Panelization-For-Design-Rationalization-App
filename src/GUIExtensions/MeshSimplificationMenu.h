@@ -31,7 +31,7 @@ namespace GUIExtensions {
 				// multiply all the mesh by "factor". relevant only for spheres. 
 				double factor = 1;
 				for (auto& obj : dp->Outputs[dp->ActiveOutput].totalObjective->objectiveList) {
-					auto fr = std::dynamic_pointer_cast<fixRadius>(obj);
+					auto fr = std::dynamic_pointer_cast<ObjectiveFunctions::Fabrication::RoundRadiuses>(obj);
 					if (fr != NULL && fr->w != 0)
 						factor = fr->alpha;
 				}
