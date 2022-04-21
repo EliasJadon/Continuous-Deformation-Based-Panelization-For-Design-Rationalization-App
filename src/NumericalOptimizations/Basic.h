@@ -26,12 +26,11 @@ namespace NumericalOptimizations {
 			Eigen::MatrixXd& norm);
 		void init(
 			std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
-			const Eigen::VectorXd& X0,
-			const Eigen::VectorXd& norm0,
-			const Eigen::VectorXd& center0,
-			const Eigen::VectorXd& Radius0,
-			const Eigen::MatrixXi& F,
-			const Eigen::MatrixXd& V);
+			const Eigen::MatrixXd& V0,
+			const Eigen::MatrixXi& F0,
+			const Eigen::MatrixXd& norm0,
+			const Eigen::MatrixXd& center0,
+			const Eigen::MatrixXd& radius0);
 		void upload_x(const Eigen::VectorXd& X0);
 
 		// Pointer to the energy class
@@ -41,8 +40,6 @@ namespace NumericalOptimizations {
 		std::atomic_bool isGradientNeeded = { false };
 
 		Cuda::indices mesh_indices;
-		Eigen::MatrixX3i F;
-		Eigen::MatrixXd V;
 		Cuda::OptimizerType Optimizer_type;
 		double timer_curr = 0, timer_sum = 0, timer_avg = 0;
 

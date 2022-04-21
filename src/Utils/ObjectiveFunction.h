@@ -167,7 +167,8 @@ namespace Cuda
 			startNx, startNy, startNz,
 			startCx, startCy, startCz,
 			startR,
-			num_vertices, num_faces, num_hinges;
+			num_vertices, num_faces, num_hinges,
+			total_variables;
 	};
 
 	static void initIndices(indices& I,const unsigned int F,const unsigned int V,const unsigned int H) 
@@ -185,6 +186,7 @@ namespace Cuda
 		I.startCy = 3 * V + 4 * F;
 		I.startCz = 3 * V + 5 * F;
 		I.startR = 3 * V + 6 * F;
+		I.total_variables = 3 * V + 7 * F;
 	}
 
 }

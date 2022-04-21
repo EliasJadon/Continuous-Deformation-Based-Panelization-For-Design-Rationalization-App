@@ -223,15 +223,7 @@ void MeshSimplificationData::initMinimizers(
 	this->radiuses = Radius0;
 	this->normals = normals;
 
-	minimizer->init(
-		totalObjective,
-		Eigen::Map<const Eigen::VectorXd>(V.data(), V.size()),
-		Eigen::Map<const Eigen::VectorXd>(normals.data(), F.size()),
-		Eigen::Map<const Eigen::VectorXd>(center0.data(), F.size()),
-		Radius0,
-		F,
-		V
-	);
+	minimizer->init(totalObjective, V, F, normals, center0, Radius0);
 }
 
 //void OptimizationOutput::updateActiveMinimizer(const Cuda::OptimizerType optimizerType)

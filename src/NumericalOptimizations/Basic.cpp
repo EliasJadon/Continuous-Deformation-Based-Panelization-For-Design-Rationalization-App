@@ -17,58 +17,59 @@ Basic::Basic(const int solverID) : solverID(solverID) {}
 
 void Basic::init(
 	std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
-	const Eigen::VectorXd& X0,
-	const Eigen::VectorXd& norm0,
-	const Eigen::VectorXd& center0,
-	const Eigen::VectorXd& Radius0,
-	const Eigen::MatrixXi& F, 
-	const Eigen::MatrixXd& V) 
+	const Eigen::MatrixXd& V0,
+	const Eigen::MatrixXi& F0,
+	const Eigen::MatrixXd& norm0,
+	const Eigen::MatrixXd& center0,
+	const Eigen::MatrixXd& radius0) 
 {
-	assert(X0.rows()			== (3 * V.rows()) && "X0 size is illegal!");
-	assert(norm0.rows()			== (3 * F.rows()) && "norm0 size is illegal!");
-	assert(center0.rows()		== (3 * F.rows()) && "center0 size is illegal!");
-	assert(Radius0.rows()		== (1 * F.rows()) && "Radius0 size is illegal!");
+	assert(Tobjective != NULL);
+	assert(V0.rows() >= 3 && V0.cols() == 3);
+	assert(F0.rows() >= 1 && F0.cols() == 3);
+	assert(norm0.rows() == F0.rows() && norm0.cols() == 3);
+	assert(center0.rows() == F0.rows() && center0.cols() == 3);
+	assert(radius0.size() == F0.rows());
 	
-	this->F = F;
-	this->V = V;
 	this->constantStep_LineSearch = 0.01;
 	this->totalObjective = Tobjective;
+
+	int numH = OptimizationUtils::getNumberOfHinges(F0);
+	Cuda::initIndices(mesh_indices, F0.rows(), V0.rows(), numH);
+
+	Cuda::AllocateMemory(X, mesh_indices.total_variables);
+	Cuda::AllocateMemory(p, mesh_indices.total_variables);
+	Cuda::AllocateMemory(curr_x, mesh_indices.total_variables);
+	Cuda::AllocateMemory(v_adam, mesh_indices.total_variables);
+	Cuda::AllocateMemory(s_adam, mesh_indices.total_variables);
 	
-	unsigned int size = 3 * V.rows() + 7 * F.rows();
-
-	int numH = OptimizationUtils::getNumberOfHinges(F);
-	Cuda::initIndices(mesh_indices, F.rows(), V.rows(), numH);
-
-	Cuda::AllocateMemory(X, size);
-	Cuda::AllocateMemory(p, size);
-	Cuda::AllocateMemory(curr_x, size);
-	Cuda::AllocateMemory(v_adam, size);
-	Cuda::AllocateMemory(s_adam, size);
-	for (int i = 0; i < size; i++) {
+	for (int vi = 0; vi < mesh_indices.num_vertices; vi++) {
+		X.host_arr[vi + mesh_indices.startVx] = V0(vi, 0);
+		X.host_arr[vi + mesh_indices.startVy] = V0(vi, 1);
+		X.host_arr[vi + mesh_indices.startVz] = V0(vi, 2);
+	}
+	for (int fi = 0; fi < mesh_indices.num_faces; fi++) {
+		X.host_arr[fi + mesh_indices.startNx] = norm0(fi, 0);
+		X.host_arr[fi + mesh_indices.startNy] = norm0(fi, 1);
+		X.host_arr[fi + mesh_indices.startNz] = norm0(fi, 2);
+		X.host_arr[fi + mesh_indices.startCx] = center0(fi, 0);
+		X.host_arr[fi + mesh_indices.startCy] = center0(fi, 1);
+		X.host_arr[fi + mesh_indices.startCz] = center0(fi, 2);
+		X.host_arr[fi + mesh_indices.startR] = radius0(fi);
+	}
+	for (int i = 0; i < mesh_indices.total_variables; i++) {
 		v_adam.host_arr[i] = 0;
 		s_adam.host_arr[i] = 0;
 		p.host_arr[i] = 0;
-	}
-	
-	for (int i = 0; i < 3 * V.rows(); i++)
-		X.host_arr[0 * V.rows() + 0 * F.rows() + i] = X0[i];
-	for (int i = 0; i < 3 * F.rows(); i++)
-		X.host_arr[3 * V.rows() + 0 * F.rows() + i] = norm0[i];
-	for (int i = 0; i < 3 * F.rows(); i++)
-		X.host_arr[3 * V.rows() + 3 * F.rows() + i] = center0[i];
-	for (int i = 0; i < F.rows(); i++)
-		X.host_arr[3 * V.rows() + 6 * F.rows() + i] = Radius0[i];
-	for (int i = 0; i < totalObjective->grad.size; i++) {
 		curr_x.host_arr[i] = X.host_arr[i];
 	}
 }
 
 void Basic::upload_x(const Eigen::VectorXd& X0)
 {
-	assert(X0.rows() == (3 * V.rows()) && "X0 size is illegal!");
-	for (int i = 0; i < 3 * V.rows(); i++)
-		X.host_arr[0 * V.rows() + 0 * F.rows() + i] = X0[i];
-	for (int i = 0; i < totalObjective->grad.size; i++)
+	assert(X0.rows() == (3 * mesh_indices.num_vertices));
+	for (int i = 0; i < 3 * mesh_indices.num_vertices; i++)
+		X.host_arr[i] = X0[i];
+	for (int i = 0; i < mesh_indices.total_variables; i++)
 		curr_x.host_arr[i] = X.host_arr[i];
 }
 
@@ -130,14 +131,14 @@ void Basic::run_one_iteration()
 
 	totalObjective->gradient(X, false);
 	if (Optimizer_type == Cuda::OptimizerType::Adam) {
-		for (int i = 0; i < totalObjective->grad.size; i++) {
+		for (int i = 0; i < mesh_indices.total_variables; i++) {
 			v_adam.host_arr[i] = BETA1_ADAM * v_adam.host_arr[i] + (1 - BETA1_ADAM) * totalObjective->grad.host_arr[i];
 			s_adam.host_arr[i] = BETA2_ADAM * s_adam.host_arr[i] + (1 - BETA2_ADAM) * pow(totalObjective->grad.host_arr[i], 2);
 			p.host_arr[i] = -v_adam.host_arr[i] / (sqrt(s_adam.host_arr[i]) + EPSILON_ADAM);
 		}
 	}
 	else if (Optimizer_type == Cuda::OptimizerType::Gradient_Descent) {
-		for (int i = 0; i < totalObjective->grad.size; i++) {
+		for (int i = 0; i < mesh_indices.total_variables; i++) {
 			p.host_arr[i] = -totalObjective->grad.host_arr[i];
 		}
 	}
@@ -157,13 +158,13 @@ void Basic::run_one_iteration_new()
 
 	//////////////////////////
 	//Get the first part of the gradients
-	for (int i = 0; i < totalObjective->grad.size; i++)
+	for (int i = 0; i < mesh_indices.total_variables; i++)
 		totalObjective->grad.host_arr[i] = 0;
 	for (auto& obj : totalObjective->objectiveList) {
 		std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(obj);
 		if (obj->w != 0 && SD == NULL) {
 			obj->gradient(X, false);
-			for (int i = 0; i < totalObjective->grad.size; i++)
+			for (int i = 0; i < mesh_indices.total_variables; i++)
 				totalObjective->grad.host_arr[i] += obj->w * obj->grad.host_arr[i];
 		}
 	}
@@ -179,20 +180,20 @@ void Basic::run_one_iteration_new()
 	///get the second part of the gradient
 	while (isGradientNeeded);
 	if (SD->w != 0) {
-		for (int i = 0; i < totalObjective->grad.size; i++)
+		for (int i = 0; i < mesh_indices.total_variables; i++)
 			totalObjective->grad.host_arr[i] += SD->w * SD->grad.host_arr[i];
 	}
 	//////////////////////////
 
 	if (Optimizer_type == Cuda::OptimizerType::Adam) {
-		for (int i = 0; i < totalObjective->grad.size; i++) {
+		for (int i = 0; i < mesh_indices.total_variables; i++) {
 			v_adam.host_arr[i] = BETA1_ADAM * v_adam.host_arr[i] + (1 - BETA1_ADAM) * totalObjective->grad.host_arr[i];
 			s_adam.host_arr[i] = BETA2_ADAM * s_adam.host_arr[i] + (1 - BETA2_ADAM) * pow(totalObjective->grad.host_arr[i], 2);
 			p.host_arr[i] = -v_adam.host_arr[i] / (sqrt(s_adam.host_arr[i]) + EPSILON_ADAM);
 		}
 	}
 	else if (Optimizer_type == Cuda::OptimizerType::Gradient_Descent) {
-		for (int i = 0; i < totalObjective->grad.size; i++) {
+		for (int i = 0; i < mesh_indices.total_variables; i++) {
 			p.host_arr[i] = -totalObjective->grad.host_arr[i];
 		}
 	}
@@ -217,7 +218,7 @@ void Basic::value_linesearch()
 	int cur_iter = 0; 
 	while (cur_iter++ < MAX_STEP_SIZE_ITER) 
 	{
-		for (int i = 0; i < totalObjective->grad.size; i++) {
+		for (int i = 0; i < mesh_indices.total_variables; i++) {
 			curr_x.host_arr[i] = X.host_arr[i] + step_size * p.host_arr[i];
 		}
 
@@ -226,7 +227,7 @@ void Basic::value_linesearch()
 			step_size /= 2;
 		else 
 		{
-			for (int i = 0; i < totalObjective->grad.size; i++) {
+			for (int i = 0; i < mesh_indices.total_variables; i++) {
 				X.host_arr[i] = curr_x.host_arr[i];
 			}
 			break;
@@ -257,7 +258,7 @@ void Basic::value_linesearch()
 
 void Basic::constant_linesearch()
 {
-	for (int i = 0; i < totalObjective->grad.size; i++) {
+	for (int i = 0; i < mesh_indices.total_variables; i++) {
 		curr_x.host_arr[i] = X.host_arr[i] + constantStep_LineSearch * p.host_arr[i];
 		X.host_arr[i] = curr_x.host_arr[i];
 	}
@@ -278,12 +279,12 @@ void Basic::get_data(
 	Eigen::VectorXd& radius, 
 	Eigen::MatrixXd& norm)
 {
-	for (int vi = 0; vi < V.rows(); vi++) {
+	for (int vi = 0; vi < mesh_indices.num_vertices; vi++) {
 		X(vi, 0) = this->X.host_arr[vi + mesh_indices.startVx];
 		X(vi, 1) = this->X.host_arr[vi + mesh_indices.startVy];
 		X(vi, 2) = this->X.host_arr[vi + mesh_indices.startVz];
 	}
-	for (int fi = 0; fi < F.rows(); fi++) {
+	for (int fi = 0; fi < mesh_indices.num_faces; fi++) {
 		center(fi, 0) = this->X.host_arr[fi + mesh_indices.startCx];
 		center(fi, 1) = this->X.host_arr[fi + mesh_indices.startCy];
 		center(fi, 2) = this->X.host_arr[fi + mesh_indices.startCz];
