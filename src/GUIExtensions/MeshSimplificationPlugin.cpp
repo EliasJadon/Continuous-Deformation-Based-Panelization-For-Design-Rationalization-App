@@ -1832,7 +1832,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	Outputs[index].minimizer->Optimizer_type = optimizer_type;
 
 	// initialize the energy
-	std::cout << console_color::yellow << "-------Energies, begin-------" << std::endl;
+	std::cout << Utils::ConsoleColor::yellow << "-------Energies, begin-------" << std::endl;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> auxPlanar = std::make_unique<ObjectiveFunctions::Panels::AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxPlanar = auxPlanar;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> auxSphere = std::make_unique<ObjectiveFunctions::Panels::AuxSphere>(V, F, Cuda::PenaltyFunction::SIGMOID);
@@ -1865,7 +1865,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	add_obj(pinChosenVertices);
 	add_obj(FixRadius);
 	add_obj(uniformSmoothness);
-	std::cout  << "-------Energies, end-------" << console_color::white << std::endl;
+	std::cout  << "-------Energies, end-------" << Utils::ConsoleColor::white << std::endl;
 	init_aux_variables();
 }
 
