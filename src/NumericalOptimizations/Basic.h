@@ -25,7 +25,7 @@ namespace NumericalOptimizations {
 			Eigen::VectorXd& radius,
 			Eigen::MatrixXd& norm);
 		void init(
-			std::shared_ptr<TotalObjective> Tobjective,
+			std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
 			const Eigen::VectorXd& X0,
 			const Eigen::VectorXd& norm0,
 			const Eigen::VectorXd& center0,
@@ -35,7 +35,7 @@ namespace NumericalOptimizations {
 		void upload_x(const Eigen::VectorXd& X0);
 
 		// Pointer to the energy class
-		std::shared_ptr<TotalObjective> totalObjective;
+		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;
 		// Activity flags
 		std::atomic_bool is_running = { false };
 		std::atomic_bool progressed = { false };

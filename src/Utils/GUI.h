@@ -863,7 +863,7 @@ namespace app_utils {
 		return comboList;
 	}
 
-	static char* build_color_energies_list(const std::shared_ptr<TotalObjective>& totalObjective) {
+	static char* build_color_energies_list(const std::shared_ptr<ObjectiveFunctions::Total>& totalObjective) {
 		std::string cStr("");
 		cStr += "No colors";
 		cStr += '\0';

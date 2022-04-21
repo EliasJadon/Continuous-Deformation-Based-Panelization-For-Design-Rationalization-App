@@ -15,7 +15,7 @@ namespace GUIExtensions {
 		std::shared_ptr <BendingNormal> Energy_Planar;
 		std::shared_ptr <ObjectiveFunctions::Deformation::PinChosenVertices> Energy_PinChosenVertices;
 		std::shared_ptr<NumericalOptimizations::Basic> minimizer;
-		std::shared_ptr<TotalObjective> totalObjective;
+		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;
 		float prev_camera_zoom;
 		Eigen::Vector3f prev_camera_translation;
 		Eigen::Quaternionf prev_trackball_angle;

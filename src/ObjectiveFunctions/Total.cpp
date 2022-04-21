@@ -1,17 +1,19 @@
 #include "ObjectiveFunctions/Total.h"
 
-TotalObjective::TotalObjective(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
+using namespace ObjectiveFunctions;
+
+Total::Total(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "Total objective";
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-TotalObjective::~TotalObjective()
+Total::~Total()
 {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double TotalObjective::value(Cuda::Array<double>& curr_x, const bool update)
+double Total::value(Cuda::Array<double>& curr_x, const bool update)
 {
 	double value = 0;
 	for (auto& obj : objectiveList)
@@ -23,7 +25,7 @@ double TotalObjective::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-double TotalObjective::value_print(Cuda::Array<double>& curr_x, const bool update)
+double Total::value_print(Cuda::Array<double>& curr_x, const bool update)
 {
 	double value = 0;
 	for (auto& obj : objectiveList)
@@ -38,7 +40,7 @@ double TotalObjective::value_print(Cuda::Array<double>& curr_x, const bool updat
 	return value;
 }
 
-void TotalObjective::gradient(Cuda::Array<double>& X, const bool update)
+void Total::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;

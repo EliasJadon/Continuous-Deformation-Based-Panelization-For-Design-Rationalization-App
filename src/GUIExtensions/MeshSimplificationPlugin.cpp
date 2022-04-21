@@ -1851,7 +1851,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	Outputs[index].Energy_PinChosenVertices = pinChosenVertices;
 
 	//init total objective
-	Outputs[index].totalObjective = std::make_shared<TotalObjective>(V, F);
+	Outputs[index].totalObjective = std::make_shared<ObjectiveFunctions::Total>(V, F);
 	Outputs[index].totalObjective->objectiveList.clear();
 	auto add_obj = [&](std::shared_ptr< ObjectiveFunctions::Basic> obj)
 	{

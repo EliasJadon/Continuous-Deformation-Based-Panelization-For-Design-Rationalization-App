@@ -22,7 +22,7 @@ Basic::Basic(const int solverID)
 { }
 
 void Basic::init(
-	std::shared_ptr<TotalObjective> Tobjective,
+	std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
 	const Eigen::VectorXd& X0,
 	const Eigen::VectorXd& norm0,
 	const Eigen::VectorXd& center0,
