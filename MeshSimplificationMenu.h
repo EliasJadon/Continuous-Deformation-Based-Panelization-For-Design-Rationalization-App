@@ -1,6 +1,6 @@
 #pragma once
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
-#include "deformation_plugin.h"
+#include "MeshSimplificationPlugin.h"
 
 class MeshSimplificationMenu : public igl::opengl::glfw::imgui::ImGuiMenu
 {	
@@ -8,7 +8,7 @@ public:
 	MeshSimplificationMenu(){}
 	~MeshSimplificationMenu(){}
 	IGL_INLINE virtual void draw_viewer_menu() override {
-		deformation_plugin* dp = (deformation_plugin*)plugin;
+		MeshSimplificationPlugin* dp = (MeshSimplificationPlugin*)plugin;
 		if (dp->ui.status != app_utils::UserInterfaceOptions::NONE)
 		{
 			dp->CollapsingHeader_user_interface();

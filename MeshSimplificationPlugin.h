@@ -1,12 +1,9 @@
 #pragma once
 
-#ifndef RDS_PLUGINS_BASIC_MENU_H
-#define RDS_PLUGINS_BASIC_MENU_H
-
 #include "optimization_output.h"
 #include <igl/opengl/glfw/imgui/ImGuiPlugin.h>
 
-class deformation_plugin : public igl::opengl::glfw::imgui::ImGuiPlugin
+class MeshSimplificationPlugin : public igl::opengl::glfw::imgui::ImGuiPlugin
 {
 public:
 	Eigen::MatrixXd original_V;
@@ -64,8 +61,8 @@ public:
 	bool UserInterface_UpdateAllOutputs;
 	float radius_length_minus_normal = 0.1;
 public:
-	deformation_plugin();
-	~deformation_plugin(){}
+	MeshSimplificationPlugin();
+	~MeshSimplificationPlugin(){}
 
 	// callbacks
 	void load_first_mesh(const std::string& name, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F);
@@ -139,5 +136,3 @@ public:
 	void add_output();
 	void remove_output(const int output_index);
 };
-
-#endif

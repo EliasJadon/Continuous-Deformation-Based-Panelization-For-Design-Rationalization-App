@@ -1,4 +1,4 @@
-#include "deformation_plugin.h"
+#include "MeshSimplificationPlugin.h"
 #include <igl/file_dialog_open.h>
 #include <GLFW/glfw3.h>
 #include <cmath>
@@ -15,11 +15,11 @@
 #define MAX_SIGMOID_PER_HINGE_VALUE  40.0f //50.0f*ADDING_WEIGHT_PER_HINGE_VALUE
 
 
-deformation_plugin::deformation_plugin(){
+MeshSimplificationPlugin::MeshSimplificationPlugin(){
 	
 }
 
-IGL_INLINE void deformation_plugin::init(igl::opengl::glfw::Viewer *_viewer)
+IGL_INLINE void MeshSimplificationPlugin::init(igl::opengl::glfw::Viewer *_viewer)
 {
 	ImGuiPlugin::init(_viewer);
 	for (int i = 0; i < 7; i++)
@@ -56,7 +56,7 @@ IGL_INLINE void deformation_plugin::init(igl::opengl::glfw::Viewer *_viewer)
 	load_first_mesh(modelName, original_V, original_F);
 }
 
-void deformation_plugin::load_first_mesh(const std::string& name, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
+void MeshSimplificationPlugin::load_first_mesh(const std::string& name, const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
 	modelName = name;
 	original_V = V;
 	original_F = F;
@@ -82,7 +82,7 @@ void deformation_plugin::load_first_mesh(const std::string& name, const Eigen::M
 	assert(Outputs.size() == 1);
 }
 
-void deformation_plugin::CollapsingHeader_update()
+void MeshSimplificationPlugin::CollapsingHeader_update()
 {
 	CollapsingHeader_change = false;
 	int changed_index = NOT_FOUND;
@@ -102,7 +102,7 @@ void deformation_plugin::CollapsingHeader_update()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_colors()
+void MeshSimplificationPlugin::CollapsingHeader_colors()
 {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[0]);
@@ -124,7 +124,7 @@ void deformation_plugin::CollapsingHeader_colors()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_face_coloring()
+void MeshSimplificationPlugin::CollapsingHeader_face_coloring()
 {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[1]);
@@ -138,7 +138,7 @@ void deformation_plugin::CollapsingHeader_face_coloring()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_screen()
+void MeshSimplificationPlugin::CollapsingHeader_screen()
 {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[2]);
@@ -164,7 +164,7 @@ void deformation_plugin::CollapsingHeader_screen()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_user_interface()
+void MeshSimplificationPlugin::CollapsingHeader_user_interface()
 {
 	if (!ImGui::CollapsingHeader("User Interface"))
 	{
@@ -177,7 +177,7 @@ void deformation_plugin::CollapsingHeader_user_interface()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_measures() {
+void MeshSimplificationPlugin::CollapsingHeader_measures() {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[7]);
 	if (ImGui::CollapsingHeader("Measures")) {
@@ -334,7 +334,7 @@ void deformation_plugin::CollapsingHeader_measures() {
 	}
 }
 
-void deformation_plugin::CollapsingHeader_fabrication() {
+void MeshSimplificationPlugin::CollapsingHeader_fabrication() {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[8]);
 	if (ImGui::CollapsingHeader("Fabrication"))
@@ -359,7 +359,7 @@ void deformation_plugin::CollapsingHeader_fabrication() {
 	}
 }
 
-void deformation_plugin::CollapsingHeader_clustering()
+void MeshSimplificationPlugin::CollapsingHeader_clustering()
 {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[3]);
@@ -437,7 +437,7 @@ void deformation_plugin::CollapsingHeader_clustering()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_minimizer()
+void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[4]);
@@ -476,7 +476,7 @@ void deformation_plugin::CollapsingHeader_minimizer()
 	}
 }
 
-void deformation_plugin::CollapsingHeader_cores(igl::opengl::ViewerCore& core, igl::opengl::ViewerData& data)
+void MeshSimplificationPlugin::CollapsingHeader_cores(igl::opengl::ViewerCore& core, igl::opengl::ViewerData& data)
 {
 	if (!outputs_window)
 		return;
@@ -530,7 +530,7 @@ void deformation_plugin::CollapsingHeader_cores(igl::opengl::ViewerCore& core, i
 	ImGui::PopID();
 }
 
-void deformation_plugin::CollapsingHeader_models(igl::opengl::ViewerData& data)
+void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& data)
 {
 	if (!outputs_window)
 		return;
@@ -603,7 +603,7 @@ void deformation_plugin::CollapsingHeader_models(igl::opengl::ViewerData& data)
 	ImGui::PopID();
 }
 
-void deformation_plugin::Draw_energies_window()
+void MeshSimplificationPlugin::Draw_energies_window()
 {
 	if (!energies_window)
 		return;
@@ -821,7 +821,7 @@ void deformation_plugin::Draw_energies_window()
 	ImGui::End();
 }
 
-void deformation_plugin::Draw_output_window()
+void MeshSimplificationPlugin::Draw_output_window()
 {
 	if (!outputs_window)
 		return;
@@ -861,7 +861,7 @@ void deformation_plugin::Draw_output_window()
 	}
 }
 
-void deformation_plugin::Draw_results_window()
+void MeshSimplificationPlugin::Draw_results_window()
 {
 	if (!results_window)
 		return;
@@ -910,7 +910,7 @@ void deformation_plugin::Draw_results_window()
 	}
 }
 
-void deformation_plugin::clear_sellected_faces_and_vertices() 
+void MeshSimplificationPlugin::clear_sellected_faces_and_vertices() 
 {
 	for (auto& o : Outputs) {
 		o.Energy_auxSpherePerHinge->Clear_HingesWeights();
@@ -920,7 +920,7 @@ void deformation_plugin::clear_sellected_faces_and_vertices()
 	}
 }
 
-void deformation_plugin::update_parameters_for_all_cores() 
+void MeshSimplificationPlugin::update_parameters_for_all_cores() 
 {
 	if (!isUpdateAll)
 		return;
@@ -981,7 +981,7 @@ void deformation_plugin::update_parameters_for_all_cores()
 	}
 }
 
-void deformation_plugin::remove_output(const int output_index) 
+void MeshSimplificationPlugin::remove_output(const int output_index) 
 {
 	stop_all_minimizers_threads();
 	viewer->erase_core(1 + output_index);
@@ -994,7 +994,7 @@ void deformation_plugin::remove_output(const int output_index)
 	post_resize(frameBufferWidth, frameBufferHeight);
 }
 
-void deformation_plugin::add_output() 
+void MeshSimplificationPlugin::add_output() 
 {
 	stop_all_minimizers_threads();
 	const int index = Outputs.size();
@@ -1020,7 +1020,7 @@ void deformation_plugin::add_output()
 	assert(Outputs.size() == (viewer->core_list.size() - 1));
 }
 
-IGL_INLINE void deformation_plugin::post_resize(int w, int h)
+IGL_INLINE void MeshSimplificationPlugin::post_resize(int w, int h)
 {
 	if (!isPluginInitialized || !viewer)
 		return;
@@ -1077,7 +1077,7 @@ IGL_INLINE void deformation_plugin::post_resize(int w, int h)
 	global_screen_size = ImVec2(w, h);
 }
 
-IGL_INLINE bool deformation_plugin::mouse_move(int mouse_x, int mouse_y)
+IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 {
 	if (IsMouseDraggingAnyWindow)
 		return true;	
@@ -1125,7 +1125,7 @@ IGL_INLINE bool deformation_plugin::mouse_move(int mouse_x, int mouse_y)
 	return false;
 }
 
-std::vector<std::pair<OptimizationOutput&, int>> deformation_plugin::listOfOutputsToUpdate(const int out_index) {
+std::vector<std::pair<OptimizationOutput&, int>> MeshSimplificationPlugin::listOfOutputsToUpdate(const int out_index) {
 	std::vector<std::pair<OptimizationOutput&, int>> vec;
 	if (out_index<0 || out_index>Outputs.size())
 		return {};
@@ -1138,7 +1138,7 @@ std::vector<std::pair<OptimizationOutput&, int>> deformation_plugin::listOfOutpu
 	return { { Outputs[out_index],out_index } };
 }
 
-IGL_INLINE bool deformation_plugin::mouse_scroll(float delta_y) 
+IGL_INLINE bool MeshSimplificationPlugin::mouse_scroll(float delta_y) 
 {
 	if (IsMouseDraggingAnyWindow || ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
 		return true;
@@ -1155,7 +1155,7 @@ IGL_INLINE bool deformation_plugin::mouse_scroll(float delta_y)
 	return false;
 }
 
-IGL_INLINE bool deformation_plugin::mouse_up(int button, int modifier) 
+IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier) 
 {
 	IsMouseDraggingAnyWindow = false;
 
@@ -1182,7 +1182,7 @@ IGL_INLINE bool deformation_plugin::mouse_up(int button, int modifier)
 	return false;
 }
 
-IGL_INLINE bool deformation_plugin::mouse_down(int button, int modifier) 
+IGL_INLINE bool MeshSimplificationPlugin::mouse_down(int button, int modifier) 
 {
 	bool LeftClick = (button == GLFW_MOUSE_BUTTON_LEFT);
 	bool RightClick = (button == GLFW_MOUSE_BUTTON_MIDDLE);
@@ -1250,7 +1250,7 @@ IGL_INLINE bool deformation_plugin::mouse_down(int button, int modifier)
 	return false;
 }
 
-IGL_INLINE bool deformation_plugin::key_pressed(unsigned int key, int modifiers) 
+IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modifiers) 
 {
 	if ((key == 'c' || key == 'C') && modifiers == 1)
 		clear_sellected_faces_and_vertices();
@@ -1348,7 +1348,7 @@ IGL_INLINE bool deformation_plugin::key_pressed(unsigned int key, int modifiers)
 	return ImGuiPlugin::key_pressed(key, modifiers);
 }
 
-IGL_INLINE bool deformation_plugin::key_down(int key, int modifiers)
+IGL_INLINE bool MeshSimplificationPlugin::key_down(int key, int modifiers)
 {
 	if (key == '1')
 		ui.status = app_utils::UserInterfaceOptions::FIX_VERTICES;
@@ -1364,19 +1364,19 @@ IGL_INLINE bool deformation_plugin::key_down(int key, int modifiers)
 	return ImGuiPlugin::key_down(key, modifiers);
 }
 
-IGL_INLINE bool deformation_plugin::key_up(int key, int modifiers)
+IGL_INLINE bool MeshSimplificationPlugin::key_up(int key, int modifiers)
 {
 	ui.status = app_utils::UserInterfaceOptions::NONE;
 	return ImGuiPlugin::key_up(key, modifiers);
 }
 
-IGL_INLINE void deformation_plugin::shutdown()
+IGL_INLINE void MeshSimplificationPlugin::shutdown()
 {
 	stop_all_minimizers_threads();
 	ImGuiPlugin::shutdown();
 }
 
-void deformation_plugin::draw_brush_sphere() 
+void MeshSimplificationPlugin::draw_brush_sphere() 
 {
 	if (!ui.isBrushing())
 		return;
@@ -1397,7 +1397,7 @@ void deformation_plugin::draw_brush_sphere()
 	OutputModel(ui.Output_Index).add_points(sphere, ui.getBrushColor(model_color));
 }
 
-IGL_INLINE bool deformation_plugin::pre_draw() 
+IGL_INLINE bool MeshSimplificationPlugin::pre_draw() 
 {
 	for (auto& out : Outputs)
 		if (out.minimizer->progressed)
@@ -1472,7 +1472,7 @@ IGL_INLINE bool deformation_plugin::pre_draw()
 	return ImGuiPlugin::pre_draw();
 }
 
-void deformation_plugin::change_minimizer_type(Cuda::OptimizerType type)
+void MeshSimplificationPlugin::change_minimizer_type(Cuda::OptimizerType type)
 {
 	optimizer_type = type;
 	stop_all_minimizers_threads();
@@ -1481,7 +1481,7 @@ void deformation_plugin::change_minimizer_type(Cuda::OptimizerType type)
 		Outputs[i].minimizer->Optimizer_type = optimizer_type;
 }
 
-void deformation_plugin::update_core_settings(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F)
+void MeshSimplificationPlugin::update_core_settings(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F)
 {
 	for (int i = 0; i < viewer->core_list.size(); i++) {
 		viewer->core_list[i].align_camera_center(V, F);
@@ -1503,7 +1503,7 @@ void deformation_plugin::update_core_settings(const Eigen::MatrixXd& V, const Ei
 		OutputModel(i).set_visible(true, Outputs[i].CoreID);
 }
 
-void deformation_plugin::follow_and_mark_selected_faces() 
+void MeshSimplificationPlugin::follow_and_mark_selected_faces() 
 {
 	for (int i = 0; i < Outputs.size(); i++) {
 		Outputs[i].initFaceColors(
@@ -1606,27 +1606,27 @@ void deformation_plugin::follow_and_mark_selected_faces()
 	}
 }
 	
-igl::opengl::ViewerData& deformation_plugin::InputModel() 
+igl::opengl::ViewerData& MeshSimplificationPlugin::InputModel() 
 {
 	return viewer->data(inputModelID);
 }
 
-igl::opengl::ViewerData& deformation_plugin::OutputModel(const int index) 
+igl::opengl::ViewerData& MeshSimplificationPlugin::OutputModel(const int index) 
 {
 	return viewer->data(Outputs[index].ModelID);
 }
 
-igl::opengl::ViewerCore& deformation_plugin::InputCore()
+igl::opengl::ViewerCore& MeshSimplificationPlugin::InputCore()
 {
 	return viewer->core(inputCoreID);
 }
 
-igl::opengl::ViewerCore& deformation_plugin::OutputCore(const int index) 
+igl::opengl::ViewerCore& MeshSimplificationPlugin::OutputCore(const int index) 
 {
 	return viewer->core(Outputs[index].CoreID);
 }
 
-bool deformation_plugin::pick_face(int& out_ind, int& f_ind, Eigen::Vector3f& intersec_point)
+bool MeshSimplificationPlugin::pick_face(int& out_ind, int& f_ind, Eigen::Vector3f& intersec_point)
 {
 	f_ind = pick_face_per_core(InputModel().V, InputModel().F, app_utils::View::SHOW_INPUT_SCREEN_ONLY, intersec_point);
 	out_ind = INPUT_MODEL_SCREEN;
@@ -1641,7 +1641,7 @@ bool deformation_plugin::pick_face(int& out_ind, int& f_ind, Eigen::Vector3f& in
 	return (f_ind != NOT_FOUND);
 }
 
-int deformation_plugin::pick_face_per_core(
+int MeshSimplificationPlugin::pick_face_per_core(
 	Eigen::MatrixXd& V, 
 	Eigen::MatrixXi& F, 
 	int CoreIndex, 
@@ -1677,7 +1677,7 @@ int deformation_plugin::pick_face_per_core(
 	return fi;
 }
 
-bool deformation_plugin::pick_vertex(int& o_ind, int& v_index) {
+bool MeshSimplificationPlugin::pick_vertex(int& o_ind, int& v_index) {
 	v_index = pick_vertex_per_core(InputModel().V, InputModel().F, app_utils::View::SHOW_INPUT_SCREEN_ONLY);
 	o_ind = INPUT_MODEL_SCREEN;
 	for (int i = 0; i < Outputs.size(); i++) {
@@ -1689,7 +1689,7 @@ bool deformation_plugin::pick_vertex(int& o_ind, int& v_index) {
 	return (v_index != NOT_FOUND);
 }
 
-int deformation_plugin::pick_vertex_per_core(
+int MeshSimplificationPlugin::pick_vertex_per_core(
 	Eigen::MatrixXd& V, 
 	Eigen::MatrixXi& F, 
 	int CoreIndex) 
@@ -1730,7 +1730,7 @@ int deformation_plugin::pick_vertex_per_core(
 	return vi;
 }
 
-void deformation_plugin::checkGradients()
+void MeshSimplificationPlugin::checkGradients()
 {
 	stop_all_minimizers_threads();
 	for (auto& o: Outputs) 
@@ -1742,7 +1742,7 @@ void deformation_plugin::checkGradients()
 	}
 }
 
-void deformation_plugin::update_data_from_minimizer()
+void MeshSimplificationPlugin::update_data_from_minimizer()
 {	
 	for (int i = 0; i < Outputs.size(); i++)
 	{
@@ -1763,23 +1763,23 @@ void deformation_plugin::update_data_from_minimizer()
 	}
 }
 
-void deformation_plugin::stop_all_minimizers_threads() {
+void MeshSimplificationPlugin::stop_all_minimizers_threads() {
 	for (auto& o : Outputs)
 		stop_one_minimizer_thread(o);
 }
 
-void deformation_plugin::stop_one_minimizer_thread(const OptimizationOutput o) {
+void MeshSimplificationPlugin::stop_one_minimizer_thread(const OptimizationOutput o) {
 	if (o.minimizer->is_running)
 		o.minimizer->stop();
 	while (o.minimizer->is_running);
 
 	isMinimizerRunning = is_Any_Minizer_running();
 }
-void deformation_plugin::start_all_minimizers_threads() {
+void MeshSimplificationPlugin::start_all_minimizers_threads() {
 	for (auto& o : Outputs)
 		start_one_minimizer_thread(o);
 }
-void deformation_plugin::start_one_minimizer_thread(const OptimizationOutput o) {
+void MeshSimplificationPlugin::start_one_minimizer_thread(const OptimizationOutput o) {
 	stop_one_minimizer_thread(o);
 	std::thread minimizer_thread1 = std::thread(&Minimizer::run_new, o.minimizer.get());
 	std::thread minimizer_thread2 = std::thread(&Minimizer::RunSymmetricDirichletGradient, o.minimizer.get());
@@ -1788,14 +1788,14 @@ void deformation_plugin::start_one_minimizer_thread(const OptimizationOutput o) 
 	
 	isMinimizerRunning = true;
 }
-bool deformation_plugin::is_Any_Minizer_running() {
+bool MeshSimplificationPlugin::is_Any_Minizer_running() {
 	for (auto&o : Outputs)
 		if (o.minimizer->is_running)
 			return true;
 	return false;
 }
 
-void deformation_plugin::init_aux_variables() 
+void MeshSimplificationPlugin::init_aux_variables() 
 {
 	stop_all_minimizers_threads();
 	if (InitMinimizer_NeighLevel_From < 1)
@@ -1812,14 +1812,14 @@ void deformation_plugin::init_aux_variables()
 			radius_length_minus_normal);
 }
 
-void deformation_plugin::run_one_minimizer_iter() 
+void MeshSimplificationPlugin::run_one_minimizer_iter() 
 {
 	stop_all_minimizers_threads();
 	for (auto& o : Outputs)
 		o.minimizer->run_one_iteration();
 }
 
-void deformation_plugin::init_objective_functions(const int index)
+void MeshSimplificationPlugin::init_objective_functions(const int index)
 {
 	Eigen::MatrixXd V = OutputModel(index).V;
 	Eigen::MatrixX3i F = OutputModel(index).F;
@@ -1868,7 +1868,7 @@ void deformation_plugin::init_objective_functions(const int index)
 	init_aux_variables();
 }
 
-void deformation_plugin::UpdateEnergyColors(const int index) 
+void MeshSimplificationPlugin::UpdateEnergyColors(const int index) 
 {
 	int numF = OutputModel(index).F.rows();
 	Eigen::VectorXd DistortionPerFace(numF);

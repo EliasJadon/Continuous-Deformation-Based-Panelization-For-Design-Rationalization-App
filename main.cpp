@@ -1,5 +1,5 @@
 #include <igl/opengl/glfw/Viewer.h>
-#include "deformation_plugin.h"
+#include "MeshSimplificationPlugin.h"
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include "MeshSimplificationMenu.h"
 
@@ -81,7 +81,7 @@ int main()
 	MeshSimplificationMenu menu;
 	menu.name = "Mesh Simplification menu";
 
-	deformation_plugin plugin;
+	MeshSimplificationPlugin plugin;
 	plugin.plugin_name = "Mesh Simplification Plugin";
 	plugin.widgets.push_back(&menu);
 	plugin.original_F = F;
