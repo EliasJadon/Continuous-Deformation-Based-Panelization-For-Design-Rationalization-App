@@ -1,6 +1,8 @@
 ﻿#include "ObjectiveFunctions/Panels/AuxSphere.h"
 
-AuxSpherePerHinge::AuxSpherePerHinge(
+using namespace ObjectiveFunctions::Panels;
+
+AuxSphere::AuxSphere(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{V,F,type}
@@ -9,11 +11,11 @@ AuxSpherePerHinge::AuxSpherePerHinge(
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-AuxSpherePerHinge::~AuxSpherePerHinge() {
+AuxSphere::~AuxSphere() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double AuxSpherePerHinge::value(Cuda::Array<double>& curr_x, const bool update)
+double AuxSphere::value(Cuda::Array<double>& curr_x, const bool update)
 {	
 	double value = 0;
 
@@ -53,7 +55,7 @@ double AuxSpherePerHinge::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-void AuxSpherePerHinge::gradient(Cuda::Array<double>& X, const bool update)
+void AuxSphere::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;

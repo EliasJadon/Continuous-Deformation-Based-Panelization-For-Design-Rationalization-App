@@ -9,7 +9,7 @@ public:
 	std::vector<std::vector<int>> clustering_faces_indices;
 	std::vector<std::pair<int, int>> SelfIntersection_pairs, flippedFaces_pairs;
 	Eigen::MatrixX3d clustering_faces_colors;
-	std::shared_ptr <AuxSpherePerHinge> Energy_auxSphere;
+	std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> Energy_auxSphere;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> Energy_auxPlanar;
 	std::shared_ptr <BendingNormal> Energy_Planar;
 	std::shared_ptr <FixChosenConstraints> Energy_PinChosenVertices;
