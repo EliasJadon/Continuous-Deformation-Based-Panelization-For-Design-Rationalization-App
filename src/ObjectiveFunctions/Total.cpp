@@ -25,21 +25,6 @@ double Total::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-double Total::value_print(Cuda::Array<double>& curr_x, const bool update)
-{
-	double value = 0;
-	for (auto& obj : objectiveList)
-		if (obj->w != 0) {
-			double val = obj->w * obj->value(curr_x, update);
-			value += val;
-			std::cout << val << ", ";
-		}
-	std::cout << value << ",\n";
-	if (update)
-		energy_value = value;
-	return value;
-}
-
 void Total::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)

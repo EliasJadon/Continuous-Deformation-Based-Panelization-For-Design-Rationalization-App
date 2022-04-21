@@ -79,8 +79,8 @@ void Basic::run()
 	halt = false;
 	while (!halt)
 		run_one_iteration();
-	is_running = false;
 	std::cout << ">> solver " + std::to_string(solverID) + " stopped" << std::endl;
+	is_running = false;
 }
 
 void Basic::run_new()
@@ -89,8 +89,8 @@ void Basic::run_new()
 	halt = false;
 	while (!halt)
 		run_one_iteration_new();
-	is_running = false;
 	std::cout << ">> solver " + std::to_string(solverID) + " stopped" << std::endl;
+	is_running = false;
 }
 
 void Basic::RunSymmetricDirichletGradient() {
@@ -168,14 +168,10 @@ void Basic::run_one_iteration_new()
 				totalObjective->grad.host_arr[i] += obj->w * obj->grad.host_arr[i];
 		}
 	}
-	//////////////////////////
-	//caculate current value
-#ifdef PRINT_CLI
-		std::cout << numIteration << ", ";
-		currentEnergy = totalObjective->value_print(X, true);
-#else
-		currentEnergy = totalObjective->value(X, true);
-#endif
+	
+
+	currentEnergy = totalObjective->value(X, true);
+
 	//////////////////////////
 	///get the second part of the gradient
 	while (isGradientNeeded);
@@ -268,9 +264,15 @@ void Basic::gradNorm_linesearch()
 {
 }
 
-void Basic::stop()
+bool Basic::external_is_running()
+{
+	return is_running;
+}
+
+void Basic::external_stop()
 {
 	halt = true;
+	while (is_running != false);
 }
 
 void Basic::get_data(

@@ -18,7 +18,8 @@ namespace NumericalOptimizations {
 		void RunSymmetricDirichletGradient();
 		void run_one_iteration();
 		void run_one_iteration_new();
-		void stop();
+		void external_stop();
+		bool external_is_running();
 		void get_data(
 			Eigen::MatrixXd& X,
 			Eigen::MatrixXd& center,
@@ -33,10 +34,8 @@ namespace NumericalOptimizations {
 			const Eigen::MatrixXd& radius0);
 		void upload_x(const Eigen::VectorXd& X0);
 
-		// Pointer to the energy class
 		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;
-		// Activity flags
-		std::atomic_bool is_running = { false };
+		
 		std::atomic_bool isGradientNeeded = { false };
 
 		Cuda::indices mesh_indices;
@@ -66,5 +65,6 @@ namespace NumericalOptimizations {
 		double step_size;
 
 		std::atomic_bool halt = { false };
+		std::atomic_bool is_running = { false };
 	};
 };

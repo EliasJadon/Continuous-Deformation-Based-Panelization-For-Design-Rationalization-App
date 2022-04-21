@@ -5,7 +5,6 @@ namespace ObjectiveFunctions {
 	class Total : public ObjectiveFunctions::Basic
 	{
 	public:
-		double value_print(Cuda::Array<double>& curr_x, const bool update);
 		std::vector<std::shared_ptr<ObjectiveFunctions::Basic>> objectiveList;
 		Total(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F);
 		~Total();

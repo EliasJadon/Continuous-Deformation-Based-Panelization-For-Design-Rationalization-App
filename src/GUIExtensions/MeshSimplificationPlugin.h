@@ -22,7 +22,7 @@ namespace GUIExtensions {
 		float Max_Distortion;
 		float neighbor_distance, brush_radius;
 		bool isUpdateAll;
-		bool isMinimizerRunning, IsMouseDraggingAnyWindow;
+		bool isAnyMinimizerRunning, IsMouseDraggingAnyWindow;
 		bool isPluginInitialized = false;
 		int faceColoring_type;
 		float Clustering_MSE_Threshold = 0.001;
@@ -125,7 +125,6 @@ namespace GUIExtensions {
 		void stop_one_minimizer_thread(const GUIExtensions::MeshSimplificationData o);
 		void start_all_minimizers_threads();
 		void start_one_minimizer_thread(const GUIExtensions::MeshSimplificationData o);
-		bool is_Any_Minizer_running();
 		void run_one_minimizer_iter();
 		void init_aux_variables();
 

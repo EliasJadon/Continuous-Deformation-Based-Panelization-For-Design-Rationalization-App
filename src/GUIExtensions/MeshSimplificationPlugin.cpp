@@ -30,7 +30,7 @@ IGL_INLINE void MeshSimplificationPlugin::init(igl::opengl::glfw::Viewer *_viewe
 	neighbor_distance = brush_radius = 0.3;
 	initSphereAuxVariables = OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS;
 	IsMouseDraggingAnyWindow = false;
-	isMinimizerRunning = false;
+	isAnyMinimizerRunning = false;
 	energies_window = results_window = outputs_window = true;
 	neighbor_Type = app_utils::Neighbor_Type::CURR_FACE;
 	isUpdateAll = true;
@@ -447,8 +447,8 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 		CollapsingHeader_curr[4] = true;
 		if (ImGui::Button("Run one iter"))
 			run_one_minimizer_iter();
-		if (ImGui::Checkbox("Run Minimizer", &isMinimizerRunning))
-			isMinimizerRunning ? start_all_minimizers_threads() : stop_all_minimizers_threads();
+		if (ImGui::Checkbox("Run Minimizer", &isAnyMinimizerRunning))
+			isAnyMinimizerRunning ? start_all_minimizers_threads() : stop_all_minimizers_threads();
 		if (ImGui::Combo("Optimizer", (int *)(&optimizer_type), "Gradient Descent\0Adam\0\0"))
 			change_minimizer_type(optimizer_type);
 		if (ImGui::Combo("init sphere var", (int *)(&initSphereAuxVariables), "Sphere Fit\0Mesh Center\0Minus Normal\0\0"))
@@ -717,7 +717,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 				ImGui::TableNextColumn();
 				ImGui::PushID(id++);
 				if (ImGui::Button("On/Off")) {
-					if (Outputs[i].minimizer->is_running)
+					if (Outputs[i].minimizer->external_is_running())
 						stop_one_minimizer_thread(Outputs[i]);
 					else
 						start_one_minimizer_thread(Outputs[i]);
@@ -1344,7 +1344,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	}
 	
 	if ((key == ' ') && modifiers == 1)
-		isMinimizerRunning ? stop_all_minimizers_threads() : start_all_minimizers_threads();
+		isAnyMinimizerRunning ? stop_all_minimizers_threads() : start_all_minimizers_threads();
 	
 	return ImGuiPlugin::key_pressed(key, modifiers);
 }
@@ -1769,11 +1769,10 @@ void MeshSimplificationPlugin::stop_all_minimizers_threads() {
 }
 
 void MeshSimplificationPlugin::stop_one_minimizer_thread(const GUIExtensions::MeshSimplificationData o) {
-	if (o.minimizer->is_running)
-		o.minimizer->stop();
-	while (o.minimizer->is_running);
-
-	isMinimizerRunning = is_Any_Minizer_running();
+	o.minimizer->external_stop();
+	isAnyMinimizerRunning = false;
+	for (auto& o : Outputs)
+		isAnyMinimizerRunning |= o.minimizer->external_is_running();
 }
 void MeshSimplificationPlugin::start_all_minimizers_threads() {
 	for (auto& o : Outputs)
@@ -1787,13 +1786,7 @@ void MeshSimplificationPlugin::start_one_minimizer_thread(const GUIExtensions::M
 	minimizer_thread1.detach();
 	minimizer_thread2.detach();
 	
-	isMinimizerRunning = true;
-}
-bool MeshSimplificationPlugin::is_Any_Minizer_running() {
-	for (auto&o : Outputs)
-		if (o.minimizer->is_running)
-			return true;
-	return false;
+	isAnyMinimizerRunning = true;
 }
 
 void MeshSimplificationPlugin::init_aux_variables() 
