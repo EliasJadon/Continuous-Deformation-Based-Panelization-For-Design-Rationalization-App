@@ -8,8 +8,15 @@ option(LIBIGL_GLFW "Build target igl::glfw" ON)
 include(libigl)
 
 # Add your project files
-file(GLOB SRC_FILES *.cpp *.h)
+file(GLOB SRC_FILES 
+		src/*.cpp src/*.h
+		src/GUIExtensions/*.cpp src/GUIExtensions/*.h
+		src/NumericalOptimizations/*.cpp src/NumericalOptimizations/*.h
+		src/ObjectiveFunctions/*.cpp src/ObjectiveFunctions/*.h
+		src/Utils/*.cpp src/Utils/*.h)
+
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(${PROJECT_NAME} PUBLIC 
 		igl::glfw 
 		igl::core

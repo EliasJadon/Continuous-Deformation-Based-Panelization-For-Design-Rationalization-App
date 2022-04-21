@@ -18,17 +18,17 @@
 #include <queue>
 #include "unique_colors.h"
 
-#include "Minimizer.h"
-#include "STVK.h"
-#include "SDenergy.h"
-#include "FixAllVertices.h"
-#include "AuxBendingNormal.h"
-#include "AuxSpherePerHinge.h"
-#include "FixChosenConstraints.h"
-#include "fixRadius.h"
-#include "UniformSmoothness.h"
-#include "ClusterHard.h"
-#include "BendingNormal.h"
+#include "NumericalOptimizations/Minimizer.h"
+#include "ObjectiveFunctions/STVK.h"
+#include "ObjectiveFunctions/SDenergy.h"
+#include "ObjectiveFunctions/FixAllVertices.h"
+#include "ObjectiveFunctions/AuxBendingNormal.h"
+#include "ObjectiveFunctions/AuxSpherePerHinge.h"
+#include "ObjectiveFunctions/FixChosenConstraints.h"
+#include "ObjectiveFunctions/fixRadius.h"
+#include "ObjectiveFunctions/UniformSmoothness.h"
+#include "ObjectiveFunctions/ClusterHard.h"
+#include "ObjectiveFunctions/BendingNormal.h"
 
 #define RED_COLOR Eigen::Vector3f(1, 0, 0)
 #define BLUE_COLOR Eigen::Vector3f(0, 0, 1)

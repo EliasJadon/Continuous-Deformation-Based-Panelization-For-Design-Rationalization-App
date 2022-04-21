@@ -1,8 +1,8 @@
-#include "Minimizer.h"
-#include "AuxBendingNormal.h"
-#include "BendingNormal.h"
-#include "AuxSpherePerHinge.h"
-#include "SDenergy.h"
+#include "NumericalOptimizations/Minimizer.h"
+#include "ObjectiveFunctions/AuxBendingNormal.h"
+#include "ObjectiveFunctions/BendingNormal.h"
+#include "ObjectiveFunctions/AuxSpherePerHinge.h"
+#include "ObjectiveFunctions/SDenergy.h"
 
 #define BETA1_ADAM 0.90f
 #define BETA2_ADAM 0.9990f
