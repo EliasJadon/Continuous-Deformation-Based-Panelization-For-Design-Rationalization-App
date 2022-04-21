@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Basic.h"
 
-class fixRadius : public ObjectiveFunction {
+class fixRadius : public ObjectiveFunctions::Basic {
 public:
 	int min = 2, max = 10;
 	float alpha = 23;

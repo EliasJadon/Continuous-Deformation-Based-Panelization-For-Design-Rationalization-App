@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Basic.h"
 
-class STVK : public ObjectiveFunction {
+class STVK : public ObjectiveFunctions::Basic {
 private:	
 	void setRestShapeFromCurrentConfiguration();
 public:

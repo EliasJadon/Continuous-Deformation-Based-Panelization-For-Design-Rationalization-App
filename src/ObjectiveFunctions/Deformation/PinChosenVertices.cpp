@@ -1,7 +1,7 @@
 #include "ObjectiveFunctions/Deformation/PinChosenVertices.h"
 
 FixChosenConstraints::FixChosenConstraints(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
-	: ObjectiveFunction{ V,F }
+	: ObjectiveFunctions::Basic{ V,F }
 {
     name = "Fix Chosen Vertices";
 	w = 500;

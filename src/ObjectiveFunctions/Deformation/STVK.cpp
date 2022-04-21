@@ -1,6 +1,6 @@
 ﻿#include "STVK.h"
 
-STVK::STVK(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunction{ V,F }
+STVK::STVK(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "STVK";
 	w = 0;

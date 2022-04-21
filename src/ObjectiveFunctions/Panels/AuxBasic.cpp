@@ -7,7 +7,7 @@ using namespace ObjectiveFunctions::Panels;
 AuxBasic::AuxBasic(
 	const Eigen::MatrixXd& V,
 	const Eigen::MatrixX3i& F,
-	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunction{ V,F }
+	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunctions::Basic{ V,F }
 {
 	w = 1;
 	name = "Aux Variables";

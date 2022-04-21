@@ -3,7 +3,7 @@
 
 namespace ObjectiveFunctions {
 	namespace Panels {
-		class AuxBasic : public ObjectiveFunction
+		class AuxBasic : public Basic
 		{
 		private:
 			double SigmoidParameter;

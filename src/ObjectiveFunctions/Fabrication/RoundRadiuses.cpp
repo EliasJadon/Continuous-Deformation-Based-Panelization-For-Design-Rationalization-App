@@ -1,6 +1,6 @@
 ﻿#include "ObjectiveFunctions/Fabrication/RoundRadiuses.h"
 
-fixRadius::fixRadius(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunction{ V,F }
+fixRadius::fixRadius(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "fix Radius";
 	w = 0;

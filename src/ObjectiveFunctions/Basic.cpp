@@ -1,6 +1,8 @@
 #include "ObjectiveFunctions/Basic.h"
 
-ObjectiveFunction::ObjectiveFunction(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) {
+using namespace ObjectiveFunctions;
+
+Basic::Basic(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) {
 	Eigen::MatrixX3d V3d(V.rows(), 3);
 	if (V.cols() == 2) {
 		V3d.leftCols(2) = V;
@@ -30,12 +32,12 @@ ObjectiveFunction::ObjectiveFunction(const Eigen::MatrixXd& V, const Eigen::Matr
 	std::cout << "\tObjective function constructor" << std::endl;
 }
 
-ObjectiveFunction::~ObjectiveFunction() {
+Basic::~Basic() {
 	Cuda::FreeMemory(grad);
 	std::cout << "\tObjective function destructor" << std::endl;
 }
 
-double_3 ObjectiveFunction::getN(const Cuda::Array<double>& X, const int fi) {
+double_3 Basic::getN(const Cuda::Array<double>& X, const int fi) {
 	return double_3(
 		X.host_arr[fi + mesh_indices.startNx],
 		X.host_arr[fi + mesh_indices.startNy],
@@ -43,7 +45,7 @@ double_3 ObjectiveFunction::getN(const Cuda::Array<double>& X, const int fi) {
 	);
 }
 
-double_3 ObjectiveFunction::getC(const Cuda::Array<double>& X, const int fi) {
+double_3 Basic::getC(const Cuda::Array<double>& X, const int fi) {
 	return double_3(
 		X.host_arr[fi + mesh_indices.startCx],
 		X.host_arr[fi + mesh_indices.startCy],
@@ -51,11 +53,11 @@ double_3 ObjectiveFunction::getC(const Cuda::Array<double>& X, const int fi) {
 	);
 }
 
-double ObjectiveFunction::getR(const Cuda::Array<double>& X, const int fi) {
+double Basic::getR(const Cuda::Array<double>& X, const int fi) {
 	return X.host_arr[fi + mesh_indices.startR];
 }
 
-double_3 ObjectiveFunction::getV(const Cuda::Array<double>& X, const int vi) {
+double_3 Basic::getV(const Cuda::Array<double>& X, const int vi) {
 	return double_3(
 		X.host_arr[vi + mesh_indices.startVx],
 		X.host_arr[vi + mesh_indices.startVy],
@@ -63,7 +65,7 @@ double_3 ObjectiveFunction::getV(const Cuda::Array<double>& X, const int vi) {
 	);
 }
 
-void ObjectiveFunction::FDGradient(const Cuda::Array<double>& X, Cuda::Array<double>& grad)
+void Basic::FDGradient(const Cuda::Array<double>& X, Cuda::Array<double>& grad)
 {
 	Cuda::Array<double> Xd;
 	Cuda::AllocateMemory(grad, X.size);
@@ -88,7 +90,7 @@ void ObjectiveFunction::FDGradient(const Cuda::Array<double>& X, Cuda::Array<dou
     }
 }
 
-void ObjectiveFunction::checkGradient(const Eigen::VectorXd& X)
+void Basic::checkGradient(const Eigen::VectorXd& X)
 {
 	Cuda::Array<double> XX;
 	Cuda::AllocateMemory(XX, X.size());

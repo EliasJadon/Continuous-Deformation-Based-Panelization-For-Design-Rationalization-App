@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Basic.h"
 
-class SDenergy : public ObjectiveFunction {
+class SDenergy : public ObjectiveFunctions::Basic {
 public:
 	Cuda::Array<double_3> D1d, D2d;
 	Eigen::VectorXd restShapeArea;

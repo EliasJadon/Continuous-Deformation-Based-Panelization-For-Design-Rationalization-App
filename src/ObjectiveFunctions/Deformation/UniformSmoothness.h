@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Basic.h"
 
-class UniformSmoothness : public ObjectiveFunction {
+class UniformSmoothness : public ObjectiveFunctions::Basic {
 public:
 	UniformSmoothness(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F);
 	~UniformSmoothness();

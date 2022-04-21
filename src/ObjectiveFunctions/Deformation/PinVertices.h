@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Basic.h"
 
-class FixAllVertices : public ObjectiveFunction
+class FixAllVertices : public ObjectiveFunctions::Basic
 {
 public:
 	FixAllVertices(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F);

@@ -1292,7 +1292,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		}
 		for (OptimizationOutput& out : Outputs) {
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[0]);
-			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
+			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1] );
 			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
 			AP->w = 0;
 			BN->w = 1.6;
@@ -1852,7 +1852,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	//init total objective
 	Outputs[index].totalObjective = std::make_shared<TotalObjective>(V, F);
 	Outputs[index].totalObjective->objectiveList.clear();
-	auto add_obj = [&](std::shared_ptr< ObjectiveFunction> obj) 
+	auto add_obj = [&](std::shared_ptr< ObjectiveFunctions::Basic> obj)
 	{
 		Outputs[index].totalObjective->objectiveList.push_back(move(obj));
 	};

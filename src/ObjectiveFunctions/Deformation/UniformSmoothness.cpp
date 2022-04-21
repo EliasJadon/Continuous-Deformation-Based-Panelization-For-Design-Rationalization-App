@@ -4,7 +4,7 @@
 #include <igl/diag.h>
 
 UniformSmoothness::UniformSmoothness(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
-	: ObjectiveFunction{ V,F }
+	: ObjectiveFunctions::Basic{ V,F }
 {
 	name = "Uniform Smoothness";
 	w = 0.05;

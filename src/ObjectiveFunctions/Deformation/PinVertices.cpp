@@ -2,7 +2,7 @@
 
 FixAllVertices::FixAllVertices(
 	const Eigen::MatrixXd& V,
-	const Eigen::MatrixX3i& F) : ObjectiveFunction{ V,F }
+	const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "Fix All Vertices";
 	w = 0.3;

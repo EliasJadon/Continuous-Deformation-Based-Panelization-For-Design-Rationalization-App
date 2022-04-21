@@ -2,7 +2,7 @@
 #include "ObjectiveFunctions/Basic.h"
 #include <mutex>
 
-class FixChosenConstraints : public ObjectiveFunction
+class FixChosenConstraints : public ObjectiveFunctions::Basic
 {
 private:
 	std::mutex m_value, m_gradient;
