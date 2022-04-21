@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Panels/AuxBasic.h"
 
-class AuxSpherePerHinge : public AuxVariables
+class AuxSpherePerHinge : public ObjectiveFunctions::Panels::AuxBasic
 {		
 public:
 	double w1 = 1, w2 = 100;

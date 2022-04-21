@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Panels/AuxBasic.h"
 
-class BendingNormal : public AuxVariables
+class BendingNormal : public ObjectiveFunctions::Panels::AuxBasic
 {
 private:
 	Eigen::MatrixX3d normals, CurrV;

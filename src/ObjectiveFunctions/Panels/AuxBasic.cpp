@@ -2,7 +2,9 @@
 #include <unsupported/Eigen/MatrixFunctions>
 #include <igl/triangle_triangle_adjacency.h>
 
-AuxVariables::AuxVariables(
+using namespace ObjectiveFunctions::Panels;
+
+AuxBasic::AuxBasic(
 	const Eigen::MatrixXd& V,
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunction{ V,F }
@@ -38,13 +40,13 @@ AuxVariables::AuxVariables(
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-AuxVariables::~AuxVariables() {
+AuxBasic::~AuxBasic() {
 	Cuda::FreeMemory(weight_PerHinge);
 	Cuda::FreeMemory(Sigmoid_PerHinge);
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-void AuxVariables::calculateHinges() {
+void AuxBasic::calculateHinges() {
 	std::vector<std::vector<std::vector<int>>> TT;
 	igl::triangle_triangle_adjacency(restShapeF, TT);
 	assert(TT.size() == restShapeF.rows());
@@ -177,7 +179,7 @@ void AuxVariables::calculateHinges() {
 	}
 }
 
-void AuxVariables::Incr_HingesWeights(const std::vector<int> faces_indices,const double add)
+void AuxBasic::Incr_HingesWeights(const std::vector<int> faces_indices,const double add)
 {
 	for (int fi : faces_indices) {
 		std::vector<int> H = OptimizationUtils::FaceToHinge_indices(hinges_faceIndex, faces_indices, fi);
@@ -193,7 +195,7 @@ void AuxVariables::Incr_HingesWeights(const std::vector<int> faces_indices,const
 	}
 }
 
-void AuxVariables::setZero_HingesWeights(const std::vector<int> vertices_indices) {
+void AuxBasic::setZero_HingesWeights(const std::vector<int> vertices_indices) {
 	for (int vi : vertices_indices) {
 		int hi = OptimizationUtils::VertexToHinge_indices(x0_GlobInd, x1_GlobInd, vertices_indices, vi);
 		if (hi >= 0 && hi < num_hinges) {
@@ -202,7 +204,7 @@ void AuxVariables::setZero_HingesWeights(const std::vector<int> vertices_indices
 	}
 }
 
-void AuxVariables::setOne_HingesWeights(const std::vector<int> faces_indices)
+void AuxBasic::setOne_HingesWeights(const std::vector<int> faces_indices)
 {
 	for (int fi : faces_indices) {
 		std::vector<int> H = OptimizationUtils::FaceToHinge_indices(hinges_faceIndex, faces_indices, fi);
@@ -212,19 +214,19 @@ void AuxVariables::setOne_HingesWeights(const std::vector<int> faces_indices)
 	}
 }
 
-void AuxVariables::Clear_HingesWeights() {
+void AuxBasic::Clear_HingesWeights() {
 	for (int hi = 0; hi < num_hinges; hi++) {
 		weight_PerHinge.host_arr[hi] = 1;
 	}
 }
 
-void AuxVariables::Inc_SigmoidParameter() {
+void AuxBasic::Inc_SigmoidParameter() {
 	SigmoidParameter *= 2;
 	for (int hi = 0; hi < mesh_indices.num_hinges; hi++) {
 		Sigmoid_PerHinge.host_arr[hi] *= 2;
 	}
 }
-void AuxVariables::Dec_SigmoidParameter(const double target) {
+void AuxBasic::Dec_SigmoidParameter(const double target) {
 	if (SigmoidParameter > target)
 		SigmoidParameter /= 2;
 	for (int hi = 0; hi < mesh_indices.num_hinges; hi++) {
@@ -232,11 +234,11 @@ void AuxVariables::Dec_SigmoidParameter(const double target) {
 			Sigmoid_PerHinge.host_arr[hi] /= 2;
 	}
 }
-double AuxVariables::get_SigmoidParameter() {
+double AuxBasic::get_SigmoidParameter() {
 	return SigmoidParameter;
 }
 
-double AuxVariables::Phi(
+double AuxBasic::Phi(
 	const double x,
 	const double SigmoidParameter,
 	const Cuda::PenaltyFunction penaltyFunction)
@@ -254,7 +256,7 @@ double AuxVariables::Phi(
 	}
 }
 
-double AuxVariables::dPhi_dm(
+double AuxBasic::dPhi_dm(
 	const double x,
 	const double SigmoidParameter,
 	const Cuda::PenaltyFunction penaltyFunction)

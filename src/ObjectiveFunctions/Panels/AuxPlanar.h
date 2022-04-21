@@ -1,7 +1,7 @@
 #pragma once
 #include "ObjectiveFunctions/Panels/AuxBasic.h"
 
-class AuxBendingNormal : public AuxVariables
+class AuxBendingNormal : public ObjectiveFunctions::Panels::AuxBasic
 {	
 public:
 	double w1 = 1, w2 = 100, w3 = 100;

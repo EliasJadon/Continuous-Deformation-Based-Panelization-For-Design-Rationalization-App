@@ -5,7 +5,7 @@
 AuxBendingNormal::AuxBendingNormal(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
-	const Cuda::PenaltyFunction penaltyFunction) : AuxVariables{V,F,penaltyFunction}
+	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunctions::Panels::AuxBasic{V,F,penaltyFunction}
 {
 	name = "Aux Bending Normal";
 	std::cout << "\t" << name << " constructor" << std::endl;

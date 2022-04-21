@@ -3,7 +3,7 @@
 AuxSpherePerHinge::AuxSpherePerHinge(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
-	const Cuda::PenaltyFunction type) : AuxVariables{V,F,type}
+	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{V,F,type}
 {
 	name = "Aux Sphere Per Hinge";
 	std::cout << "\t" << name << " constructor" << std::endl;
