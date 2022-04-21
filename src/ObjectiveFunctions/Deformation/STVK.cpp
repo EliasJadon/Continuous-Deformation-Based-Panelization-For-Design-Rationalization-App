@@ -1,5 +1,7 @@
 ﻿#include "STVK.h"
 
+using namespace ObjectiveFunctions::Deformation;
+
 STVK::STVK(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
 	name = "STVK";

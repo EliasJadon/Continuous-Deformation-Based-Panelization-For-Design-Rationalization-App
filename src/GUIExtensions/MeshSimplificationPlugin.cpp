@@ -1838,7 +1838,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	Outputs[index].Energy_auxPlanar = auxPlanar;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> auxSphere = std::make_unique<ObjectiveFunctions::Panels::AuxSphere>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxSphere = auxSphere;
-	std::shared_ptr <STVK> stvk = std::make_unique<STVK>(V, F);
+	std::shared_ptr <ObjectiveFunctions::Deformation::STVK> stvk = std::make_unique<ObjectiveFunctions::Deformation::STVK>(V, F);
 	std::shared_ptr <SDenergy> sdenergy = std::make_unique<SDenergy>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Deformation::PinVertices> fixAllVertices = std::make_unique<ObjectiveFunctions::Deformation::PinVertices>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Fabrication::RoundRadiuses> FixRadius = std::make_unique<ObjectiveFunctions::Fabrication::RoundRadiuses>(V, F);
