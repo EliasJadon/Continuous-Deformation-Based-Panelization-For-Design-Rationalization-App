@@ -1,6 +1,8 @@
 #include "ObjectiveFunctions/Deformation/PinVertices.h"
 
-FixAllVertices::FixAllVertices(
+using namespace ObjectiveFunctions::Deformation;
+
+PinVertices::PinVertices(
 	const Eigen::MatrixXd& V,
 	const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
@@ -9,12 +11,12 @@ FixAllVertices::FixAllVertices(
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-FixAllVertices::~FixAllVertices()
+PinVertices::~PinVertices()
 {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double FixAllVertices::value(Cuda::Array<double>& curr_x, const bool update)
+double PinVertices::value(Cuda::Array<double>& curr_x, const bool update)
 {
 	double value = 0;
 	for (int vi = 0; vi < restShapeV.rows(); vi++) {
@@ -29,7 +31,7 @@ double FixAllVertices::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-void FixAllVertices::gradient(Cuda::Array<double>& X, const bool update)
+void PinVertices::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;
