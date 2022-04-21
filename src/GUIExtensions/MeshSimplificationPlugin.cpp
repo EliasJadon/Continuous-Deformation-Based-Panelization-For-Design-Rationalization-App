@@ -1842,7 +1842,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	std::shared_ptr <ObjectiveFunctions::Deformation::SymmetricDirichlet> sdenergy = std::make_unique<ObjectiveFunctions::Deformation::SymmetricDirichlet>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Deformation::PinVertices> fixAllVertices = std::make_unique<ObjectiveFunctions::Deformation::PinVertices>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Fabrication::RoundRadiuses> FixRadius = std::make_unique<ObjectiveFunctions::Fabrication::RoundRadiuses>(V, F);
-	std::shared_ptr <UniformSmoothness> uniformSmoothness = std::make_unique<UniformSmoothness>(V, F);
+	std::shared_ptr <ObjectiveFunctions::Deformation::UniformSmoothness> uniformSmoothness = std::make_unique<ObjectiveFunctions::Deformation::UniformSmoothness>(V, F);
 	std::shared_ptr <BendingNormal> planar = std::make_unique<BendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_Planar = planar;
 

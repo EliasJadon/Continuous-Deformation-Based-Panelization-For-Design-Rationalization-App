@@ -3,6 +3,8 @@
 #include <igl/sum.h>
 #include <igl/diag.h>
 
+using namespace ObjectiveFunctions::Deformation;
+
 UniformSmoothness::UniformSmoothness(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
 	: ObjectiveFunctions::Basic{ V,F }
 {
