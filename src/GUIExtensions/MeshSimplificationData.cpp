@@ -1,5 +1,7 @@
 #include "GUIExtensions/MeshSimplificationData.h"
 
+using namespace GUIExtensions;
+
 MeshSimplificationData::MeshSimplificationData(
 	const int CoreID,
 	const int meshID,
