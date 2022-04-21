@@ -1,7 +1,9 @@
 ﻿#include "ObjectiveFunctions/Panels/Planar.h"
 #include <igl/per_face_normals.h>
 
-BendingNormal::BendingNormal(
+using namespace ObjectiveFunctions::Panels;
+
+Planar::Planar(
 	const Eigen::MatrixXd& V,
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{ V,F,type }
@@ -12,11 +14,11 @@ BendingNormal::BendingNormal(
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-BendingNormal::~BendingNormal() {
+Planar::~Planar() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double BendingNormal::value(Cuda::Array<double>& curr_x, const bool update)
+double Planar::value(Cuda::Array<double>& curr_x, const bool update)
 {
 	for (int vi = 0; vi < restShapeV.rows(); vi++) {
 		double_3 V = getV(curr_x, vi);
@@ -37,7 +39,7 @@ double BendingNormal::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-void BendingNormal::gradient(Cuda::Array<double>& X, const bool update)
+void Planar::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++) {
 		grad.host_arr[i] = 0;
@@ -75,7 +77,7 @@ void BendingNormal::gradient(Cuda::Array<double>& X, const bool update)
 }
 
 
-Eigen::Matrix< double, 6, 1> BendingNormal::dm_dN(int hi) {
+Eigen::Matrix< double, 6, 1> Planar::dm_dN(int hi) {
 	// m = ||n1 - n0||^2
 	// m = (n1.x - n0.x)^2 + (n1.y - n0.y)^2 + (n1.z - n0.z)^2
 	int f0 = hinges_faceIndex[hi](0);
@@ -91,7 +93,7 @@ Eigen::Matrix< double, 6, 1> BendingNormal::dm_dN(int hi) {
 	return grad;
 }
 
-Eigen::Matrix<double, 6, 12> BendingNormal::dN_dx_perhinge(int hi) {
+Eigen::Matrix<double, 6, 12> Planar::dN_dx_perhinge(int hi) {
 	int f0 = hinges_faceIndex[hi](0);
 	int f1 = hinges_faceIndex[hi](1);
 	Eigen::Matrix<double, 3, 9> n0_x = dN_dx_perface(f0);
@@ -110,7 +112,7 @@ Eigen::Matrix<double, 6, 12> BendingNormal::dN_dx_perhinge(int hi) {
 	return n_x;
 }
 
-Eigen::Matrix<double, 3, 9> BendingNormal::dN_dx_perface(int fi) {
+Eigen::Matrix<double, 3, 9> Planar::dN_dx_perface(int fi) {
 	// e1 = v1-v0
 	// e2 = v2-v0
 	//
@@ -146,7 +148,7 @@ Eigen::Matrix<double, 3, 9> BendingNormal::dN_dx_perface(int fi) {
 	return jacobian_normalizedN;
 }
 
-int BendingNormal::x_GlobInd(int index, int hi) {
+int Planar::x_GlobInd(int index, int hi) {
 	if (index == 0)
 		return x0_GlobInd(hi);
 	if (index == 1)

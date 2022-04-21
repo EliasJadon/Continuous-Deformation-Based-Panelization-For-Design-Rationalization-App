@@ -733,7 +733,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 
 					auto ABN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(obj);
 					auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(obj);
-					auto BN = std::dynamic_pointer_cast<BendingNormal>(obj);
+					auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(obj);
 
 					if (obj->w) {
 						if (fR != NULL) {
@@ -1294,7 +1294,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[0]);
 			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1] );
-			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
+			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[2]);
 			AP->w = 0;
 			BN->w = 1.6;
 			AS->w = 0;
@@ -1312,7 +1312,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[0]);
 			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
-			auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
+			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[2]);
 			AP->w = 1.6;
 			BN->w = 0;
 			AS->w = 0;
@@ -1335,7 +1335,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 			{
 				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[0]);
 				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[1]);
-				auto BN = std::dynamic_pointer_cast<BendingNormal>(out.totalObjective->objectiveList[2]);
+				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[2]);
 				AP->w = 0;
 				BN->w = 0;
 				AS->w = 1.6;
@@ -1754,7 +1754,7 @@ void MeshSimplificationPlugin::update_data_from_minimizer()
 
 		Eigen::MatrixX3d N;
 		igl::per_face_normals(V, OutputModel(i).F, N);
-		auto BN = std::dynamic_pointer_cast<BendingNormal>(Outputs[i].totalObjective->objectiveList[2]);
+		auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(Outputs[i].totalObjective->objectiveList[2]);
 		if (BN->w != 0) {
 			o.normals = N;
 		}
@@ -1843,7 +1843,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	std::shared_ptr <ObjectiveFunctions::Deformation::PinVertices> fixAllVertices = std::make_unique<ObjectiveFunctions::Deformation::PinVertices>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Fabrication::RoundRadiuses> FixRadius = std::make_unique<ObjectiveFunctions::Fabrication::RoundRadiuses>(V, F);
 	std::shared_ptr <ObjectiveFunctions::Deformation::UniformSmoothness> uniformSmoothness = std::make_unique<ObjectiveFunctions::Deformation::UniformSmoothness>(V, F);
-	std::shared_ptr <BendingNormal> planar = std::make_unique<BendingNormal>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	std::shared_ptr <ObjectiveFunctions::Panels::Planar> planar = std::make_unique<ObjectiveFunctions::Panels::Planar>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_Planar = planar;
 
 	//Add User Interface Energies

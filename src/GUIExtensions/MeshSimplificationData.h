@@ -12,7 +12,7 @@ namespace GUIExtensions {
 		Eigen::MatrixX3d clustering_faces_colors;
 		std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> Energy_auxSphere;
 		std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> Energy_auxPlanar;
-		std::shared_ptr <BendingNormal> Energy_Planar;
+		std::shared_ptr <ObjectiveFunctions::Panels::Planar> Energy_Planar;
 		std::shared_ptr <ObjectiveFunctions::Deformation::PinChosenVertices> Energy_PinChosenVertices;
 		std::shared_ptr<NumericalOptimizations::Basic> minimizer;
 		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;
