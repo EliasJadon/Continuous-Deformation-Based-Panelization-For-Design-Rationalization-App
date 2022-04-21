@@ -1,4 +1,4 @@
-﻿#include "AuxBendingNormal.h"
+﻿#include "ObjectiveFunctions/Panels/AuxPlanar.h"
 #include <unsupported/Eigen/MatrixFunctions>
 #include <igl/triangle_triangle_adjacency.h>
 

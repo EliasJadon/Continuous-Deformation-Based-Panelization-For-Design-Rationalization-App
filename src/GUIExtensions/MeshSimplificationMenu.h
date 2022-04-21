@@ -1,6 +1,6 @@
 #pragma once
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
-#include "MeshSimplificationPlugin.h"
+#include "GUIExtensions/MeshSimplificationPlugin.h"
 
 class MeshSimplificationMenu : public igl::opengl::glfw::imgui::ImGuiMenu
 {	

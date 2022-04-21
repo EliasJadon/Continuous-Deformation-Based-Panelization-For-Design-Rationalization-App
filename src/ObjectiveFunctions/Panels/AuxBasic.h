@@ -1,5 +1,5 @@
 #pragma once
-#include "ObjectiveFunction.h"
+#include "ObjectiveFunctions/Basic.h"
 
 class AuxVariables : public ObjectiveFunction
 {	

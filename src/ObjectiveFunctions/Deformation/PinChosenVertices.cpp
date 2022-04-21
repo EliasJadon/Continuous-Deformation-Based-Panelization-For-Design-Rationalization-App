@@ -1,4 +1,4 @@
-#include "FixChosenConstraints.h"
+#include "ObjectiveFunctions/Deformation/PinChosenVertices.h"
 
 FixChosenConstraints::FixChosenConstraints(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
 	: ObjectiveFunction{ V,F }

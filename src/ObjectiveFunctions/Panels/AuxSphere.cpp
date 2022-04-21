@@ -1,4 +1,4 @@
-﻿#include "AuxSpherePerHinge.h"
+﻿#include "ObjectiveFunctions/Panels/AuxSphere.h"
 
 AuxSpherePerHinge::AuxSpherePerHinge(
 	const Eigen::MatrixXd& V, 

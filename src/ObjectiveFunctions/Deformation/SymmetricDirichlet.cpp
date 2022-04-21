@@ -1,4 +1,4 @@
-﻿#include "SDenergy.h"
+﻿#include "ObjectiveFunctions/Deformation/SymmetricDirichlet.h"
 
 
 SDenergy::SDenergy(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunction{ V,F } 

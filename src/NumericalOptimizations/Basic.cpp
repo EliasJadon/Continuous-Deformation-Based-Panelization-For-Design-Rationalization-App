@@ -1,8 +1,8 @@
-#include "NumericalOptimizations/Minimizer.h"
-#include "ObjectiveFunctions/AuxBendingNormal.h"
-#include "ObjectiveFunctions/BendingNormal.h"
-#include "ObjectiveFunctions/AuxSpherePerHinge.h"
-#include "ObjectiveFunctions/SDenergy.h"
+#include "NumericalOptimizations/Basic.h"
+#include "ObjectiveFunctions/Panels/AuxPlanar.h"
+#include "ObjectiveFunctions/Panels/Planar.h"
+#include "ObjectiveFunctions/Panels/AuxSphere.h"
+#include "ObjectiveFunctions/Deformation/SymmetricDirichlet.h"
 
 #define BETA1_ADAM 0.90f
 #define BETA2_ADAM 0.9990f

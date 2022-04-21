@@ -1,4 +1,4 @@
-#include "optimization_output.h"
+#include "GUIExtensions/MeshSimplificationData.h"
 
 OptimizationOutput::OptimizationOutput(
 	const int CoreID,

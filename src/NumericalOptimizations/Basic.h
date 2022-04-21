@@ -1,5 +1,5 @@
 #pragma once
-#include "ObjectiveFunctions/TotalObjective.h"
+#include "ObjectiveFunctions/Total.h"
 #include <atomic>
 #include <shared_mutex>
 #include <igl/flip_avoiding_line_search.h>

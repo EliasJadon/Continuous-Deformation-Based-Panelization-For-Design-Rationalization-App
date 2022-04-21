@@ -1,4 +1,4 @@
-#include "FixAllVertices.h"
+#include "ObjectiveFunctions/Deformation/PinVertices.h"
 
 FixAllVertices::FixAllVertices(
 	const Eigen::MatrixXd& V,

@@ -1,4 +1,4 @@
-﻿#include "AuxVariables.h"
+﻿#include "ObjectiveFunctions/Panels/AuxBasic.h"
 #include <unsupported/Eigen/MatrixFunctions>
 #include <igl/triangle_triangle_adjacency.h>
 

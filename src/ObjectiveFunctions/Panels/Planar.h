@@ -1,5 +1,5 @@
 #pragma once
-#include "AuxVariables.h"
+#include "ObjectiveFunctions/Panels/AuxBasic.h"
 
 class BendingNormal : public AuxVariables
 {

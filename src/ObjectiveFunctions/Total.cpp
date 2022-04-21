@@ -1,4 +1,4 @@
-#include "TotalObjective.h"
+#include "ObjectiveFunctions/Total.h"
 
 TotalObjective::TotalObjective(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunction{ V,F }
 {

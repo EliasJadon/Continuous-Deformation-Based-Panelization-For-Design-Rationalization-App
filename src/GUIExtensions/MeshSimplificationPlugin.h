@@ -1,6 +1,6 @@
 #pragma once
 
-#include "optimization_output.h"
+#include "GUIExtensions/MeshSimplificationData.h"
 #include <igl/opengl/glfw/imgui/ImGuiPlugin.h>
 
 class MeshSimplificationPlugin : public igl::opengl::glfw::imgui::ImGuiPlugin

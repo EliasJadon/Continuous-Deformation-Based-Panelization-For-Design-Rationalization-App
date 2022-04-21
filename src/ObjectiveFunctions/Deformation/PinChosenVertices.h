@@ -1,5 +1,5 @@
 #pragma once
-#include "ObjectiveFunction.h"
+#include "ObjectiveFunctions/Basic.h"
 #include <mutex>
 
 class FixChosenConstraints : public ObjectiveFunction

@@ -1,4 +1,4 @@
-﻿#include "fixRadius.h"
+﻿#include "ObjectiveFunctions/Fabrication/RoundRadiuses.h"
 
 fixRadius::fixRadius(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunction{ V,F }
 {

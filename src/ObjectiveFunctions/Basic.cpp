@@ -1,4 +1,4 @@
-#include "ObjectiveFunction.h"
+#include "ObjectiveFunctions/Basic.h"
 
 ObjectiveFunction::ObjectiveFunction(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) {
 	Eigen::MatrixX3d V3d(V.rows(), 3);

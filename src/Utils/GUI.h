@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/unproject_in_mesh.h>
 #include <igl/unproject_ray.h>
@@ -16,19 +15,19 @@
 #include <chrono>
 #include <vector>
 #include <queue>
-#include "unique_colors.h"
+#include <iostream>
 
-#include "NumericalOptimizations/Minimizer.h"
-#include "ObjectiveFunctions/STVK.h"
-#include "ObjectiveFunctions/SDenergy.h"
-#include "ObjectiveFunctions/FixAllVertices.h"
-#include "ObjectiveFunctions/AuxBendingNormal.h"
-#include "ObjectiveFunctions/AuxSpherePerHinge.h"
-#include "ObjectiveFunctions/FixChosenConstraints.h"
-#include "ObjectiveFunctions/fixRadius.h"
-#include "ObjectiveFunctions/UniformSmoothness.h"
-#include "ObjectiveFunctions/ClusterHard.h"
-#include "ObjectiveFunctions/BendingNormal.h"
+#include "Utils/Clustering.h"
+#include "NumericalOptimizations/Basic.h"
+#include "ObjectiveFunctions/Deformation/STVK.h"
+#include "ObjectiveFunctions/Deformation/SymmetricDirichlet.h"
+#include "ObjectiveFunctions/Deformation/PinVertices.h"
+#include "ObjectiveFunctions/Deformation/PinChosenVertices.h"
+#include "ObjectiveFunctions/Deformation/UniformSmoothness.h"
+#include "ObjectiveFunctions/Panels/AuxPlanar.h"
+#include "ObjectiveFunctions/Panels/AuxSphere.h"
+#include "ObjectiveFunctions/Panels/Planar.h"
+#include "ObjectiveFunctions/Fabrication/RoundRadiuses.h"
 
 #define RED_COLOR Eigen::Vector3f(1, 0, 0)
 #define BLUE_COLOR Eigen::Vector3f(0, 0, 1)

@@ -1,6 +1,6 @@
 #pragma once
-#include "Utils\OptimizationUtils.h"
-#include "Utils\console_color.h"
+#include "Utils\ObjectiveFunction.h"
+#include "Utils\ConsoleColor.h"
 
 class ObjectiveFunction
 {

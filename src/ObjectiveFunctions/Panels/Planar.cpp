@@ -1,4 +1,4 @@
-﻿#include "BendingNormal.h"
+﻿#include "ObjectiveFunctions/Panels/Planar.h"
 #include <igl/per_face_normals.h>
 
 BendingNormal::BendingNormal(

@@ -1,5 +1,5 @@
 #pragma once
-#include "Utils/app_utils.h"
+#include "Utils/GUI.h"
 
 class OptimizationOutput {
 public:
