@@ -13,7 +13,7 @@ namespace GUIExtensions {
 		std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> Energy_auxSphere;
 		std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> Energy_auxPlanar;
 		std::shared_ptr <BendingNormal> Energy_Planar;
-		std::shared_ptr <FixChosenConstraints> Energy_PinChosenVertices;
+		std::shared_ptr <ObjectiveFunctions::Deformation::PinChosenVertices> Energy_PinChosenVertices;
 		std::shared_ptr<NumericalOptimizations::Basic> minimizer;
 		std::shared_ptr<TotalObjective> totalObjective;
 		float prev_camera_zoom;

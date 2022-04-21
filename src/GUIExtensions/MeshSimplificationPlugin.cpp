@@ -1847,7 +1847,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	Outputs[index].Energy_Planar = planar;
 
 	//Add User Interface Energies
-	auto pinChosenVertices = std::make_shared<FixChosenConstraints>(V, F);
+	auto pinChosenVertices = std::make_shared<ObjectiveFunctions::Deformation::PinChosenVertices>(V, F);
 	Outputs[index].Energy_PinChosenVertices = pinChosenVertices;
 
 	//init total objective

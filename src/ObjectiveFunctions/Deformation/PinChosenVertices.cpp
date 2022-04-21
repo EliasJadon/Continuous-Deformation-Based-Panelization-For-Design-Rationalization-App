@@ -1,6 +1,8 @@
 #include "ObjectiveFunctions/Deformation/PinChosenVertices.h"
 
-FixChosenConstraints::FixChosenConstraints(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
+using namespace ObjectiveFunctions::Deformation;
+
+PinChosenVertices::PinChosenVertices(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
 	: ObjectiveFunctions::Basic{ V,F }
 {
     name = "Fix Chosen Vertices";
@@ -9,12 +11,12 @@ FixChosenConstraints::FixChosenConstraints(const Eigen::MatrixXd& V, const Eigen
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-FixChosenConstraints::~FixChosenConstraints() 
+PinChosenVertices::~PinChosenVertices()
 {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-void FixChosenConstraints::insertConstraint(const int new_vertex, const Eigen::MatrixX3d& V)
+void PinChosenVertices::insertConstraint(const int new_vertex, const Eigen::MatrixX3d& V)
 {
 	m_value.lock();
 	m_gradient.lock();
@@ -24,7 +26,7 @@ void FixChosenConstraints::insertConstraint(const int new_vertex, const Eigen::M
 	m_value.unlock();
 }
 
-void FixChosenConstraints::translateConstraint(const int vertex, const Eigen::RowVector3d& translation)
+void PinChosenVertices::translateConstraint(const int vertex, const Eigen::RowVector3d& translation)
 {
 	m_value.lock();
 	m_gradient.lock();
@@ -33,7 +35,7 @@ void FixChosenConstraints::translateConstraint(const int vertex, const Eigen::Ro
 	m_value.unlock();
 }
 
-void FixChosenConstraints::eraseConstraint(const int vertex)
+void PinChosenVertices::eraseConstraint(const int vertex)
 {
 	m_value.lock();
 	m_gradient.lock();
@@ -42,7 +44,7 @@ void FixChosenConstraints::eraseConstraint(const int vertex)
 	m_value.unlock();
 }
 
-void FixChosenConstraints::clearConstraints()
+void PinChosenVertices::clearConstraints()
 {
 	m_value.lock();
 	m_gradient.lock();
@@ -51,11 +53,11 @@ void FixChosenConstraints::clearConstraints()
 	m_value.unlock();
 }
 
-std::set<int> FixChosenConstraints::getConstraintsIndices() {
+std::set<int> PinChosenVertices::getConstraintsIndices() {
 	return Constraints_indices;
 }
 
-double FixChosenConstraints::value(Cuda::Array<double>& curr_x, const bool update)
+double PinChosenVertices::value(Cuda::Array<double>& curr_x, const bool update)
 {
 	m_value.lock();
 	double value = 0;
@@ -70,7 +72,7 @@ double FixChosenConstraints::value(Cuda::Array<double>& curr_x, const bool updat
 	return value;
 }
 
-void FixChosenConstraints::gradient(Cuda::Array<double>& X, const bool update)
+void PinChosenVertices::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;
