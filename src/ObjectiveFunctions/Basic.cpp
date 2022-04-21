@@ -28,13 +28,13 @@ Basic::Basic(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) {
 	w = 0;
 	energy_value = 0;
 	gradient_norm = 0;
-	name = "Objective function";
-	std::cout << "\tObjective function constructor" << std::endl;
+	name = "Basic";
+	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
 Basic::~Basic() {
 	Cuda::FreeMemory(grad);
-	std::cout << "\tObjective function destructor" << std::endl;
+	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
 double_3 Basic::getN(const Cuda::Array<double>& X, const int fi) {

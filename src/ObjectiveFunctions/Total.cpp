@@ -4,7 +4,7 @@ using namespace ObjectiveFunctions;
 
 Total::Total(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
-	name = "Total objective";
+	name = "Total";
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 

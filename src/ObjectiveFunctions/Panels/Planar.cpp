@@ -9,7 +9,7 @@ Planar::Planar(
 	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{ V,F,type }
 {
 	CurrV.resize(V.rows(), 3);
-	name = "Bending Normal";
+	name = "Planar";
 	w = 0;
 	std::cout << "\t" << name << " constructor" << std::endl;
 }

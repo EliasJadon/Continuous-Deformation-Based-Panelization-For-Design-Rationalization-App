@@ -10,7 +10,7 @@ AuxBasic::AuxBasic(
 	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunctions::Basic{ V,F }
 {
 	w = 1;
-	name = "Aux Variables";
+	name = "Aux Basic";
 
 	//Initialize rest variables (X0) m
 	calculateHinges();

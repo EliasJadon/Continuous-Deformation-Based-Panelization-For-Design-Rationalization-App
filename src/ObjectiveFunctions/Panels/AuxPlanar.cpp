@@ -9,7 +9,7 @@ AuxPlanar::AuxPlanar(
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunctions::Panels::AuxBasic{V,F,penaltyFunction}
 {
-	name = "Aux Bending Normal";
+	name = "Aux Planar";
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 

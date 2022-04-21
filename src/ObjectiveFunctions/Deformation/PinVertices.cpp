@@ -6,7 +6,7 @@ PinVertices::PinVertices(
 	const Eigen::MatrixXd& V,
 	const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
-	name = "Fix All Vertices";
+	name = "Pin Vertices";
 	w = 0.3;
 	std::cout << "\t" << name << " constructor" << std::endl;
 }

@@ -4,7 +4,7 @@ using namespace ObjectiveFunctions::Fabrication;
 
 RoundRadiuses::RoundRadiuses(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) : ObjectiveFunctions::Basic{ V,F }
 {
-	name = "fix Radius";
+	name = "Round Radiuses";
 	w = 0;
 	std::cout << "\t" << name << " constructor" << std::endl;
 }

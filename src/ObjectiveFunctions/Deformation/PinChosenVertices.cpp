@@ -5,7 +5,7 @@ using namespace ObjectiveFunctions::Deformation;
 PinChosenVertices::PinChosenVertices(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F)
 	: ObjectiveFunctions::Basic{ V,F }
 {
-    name = "Fix Chosen Vertices";
+    name = "Pin Chosen Vertices";
 	w = 500;
 	Constraints_Position.resize(V.rows(), 3);
 	std::cout << "\t" << name << " constructor" << std::endl;
