@@ -2,9 +2,7 @@
 #include "ObjectiveFunctions/Basic.h"
 
 namespace ObjectiveFunctions {
-
 	namespace Panels {
-
 		class AuxBasic : public ObjectiveFunction
 		{
 		private:

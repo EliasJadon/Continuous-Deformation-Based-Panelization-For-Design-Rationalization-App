@@ -10,7 +10,10 @@
 #define MAX_STEP_SIZE_ITER 50
 //#define PRINT_CLI
 
-Minimizer::Minimizer(const int solverID)
+using namespace NumericalOptimizations;
+
+
+Basic::Basic(const int solverID)
 	:
 	solverID(solverID),
 	parameters_mutex(std::make_unique<std::mutex>()),
@@ -18,7 +21,7 @@ Minimizer::Minimizer(const int solverID)
 	param_cv(std::make_unique<std::condition_variable>())
 { }
 
-void Minimizer::init(
+void Basic::init(
 	std::shared_ptr<TotalObjective> Tobjective,
 	const Eigen::VectorXd& X0,
 	const Eigen::VectorXd& norm0,
@@ -67,7 +70,7 @@ void Minimizer::init(
 	}
 }
 
-void Minimizer::upload_x(const Eigen::VectorXd& X0) 
+void Basic::upload_x(const Eigen::VectorXd& X0)
 {
 	assert(X0.rows() == (3 * V.rows()) && "X0 size is illegal!");
 	for (int i = 0; i < 3 * V.rows(); i++)
@@ -77,7 +80,7 @@ void Minimizer::upload_x(const Eigen::VectorXd& X0)
 	update_external_data();
 }
 
-void Minimizer::run()
+void Basic::run()
 {
 	is_running = true;
 	halt = false;
@@ -87,7 +90,7 @@ void Minimizer::run()
 	std::cout << ">> solver " + std::to_string(solverID) + " stopped" << std::endl;
 }
 
-void Minimizer::run_new()
+void Basic::run_new()
 {
 	is_running = true;
 	halt = false;
@@ -97,7 +100,7 @@ void Minimizer::run_new()
 	std::cout << ">> solver " + std::to_string(solverID) + " stopped" << std::endl;
 }
 
-void Minimizer::RunSymmetricDirichletGradient() {
+void Basic::RunSymmetricDirichletGradient() {
 	halt = false;
 	while (!halt) {
 		std::shared_ptr<SDenergy> SD = std::dynamic_pointer_cast<SDenergy>(totalObjective->objectiveList[4]);
@@ -109,7 +112,7 @@ void Minimizer::RunSymmetricDirichletGradient() {
 	}
 }
 
-void Minimizer::update_lambda() 
+void Basic::update_lambda()
 {
 	std::shared_ptr<ObjectiveFunctions::Panels::AuxSphere> ASH = 
 		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(totalObjective->objectiveList[0]);
@@ -127,7 +130,7 @@ void Minimizer::update_lambda()
 	}
 }
 
-void Minimizer::run_one_iteration() 
+void Basic::run_one_iteration()
 {
 	OptimizationUtils::Timer t(&timer_sum, &timer_curr);
 	timer_avg = timer_sum / ++numIteration;
@@ -151,7 +154,7 @@ void Minimizer::run_one_iteration()
 	update_external_data();
 }
 
-void Minimizer::run_one_iteration_new() 
+void Basic::run_one_iteration_new()
 {
 	OptimizationUtils::Timer t(&timer_sum, &timer_curr);
 	//calculate SD gradient in advance
@@ -208,7 +211,7 @@ void Minimizer::run_one_iteration_new()
 
 
 
-void Minimizer::linesearch()
+void Basic::linesearch()
 {
 	if (lineSearch_type == OptimizationUtils::LineSearch::GRADIENT_NORM)
 		gradNorm_linesearch();
@@ -218,7 +221,7 @@ void Minimizer::linesearch()
 		constant_linesearch();
 }
 
-void Minimizer::value_linesearch()
+void Basic::value_linesearch()
 {	
 	step_size = init_step_size;
 	int cur_iter = 0; 
@@ -262,7 +265,7 @@ void Minimizer::value_linesearch()
 	}
 }
 
-void Minimizer::constant_linesearch()
+void Basic::constant_linesearch()
 {
 	for (int i = 0; i < totalObjective->grad.size; i++) {
 		curr_x.host_arr[i] = X.host_arr[i] + constantStep_LineSearch * p.host_arr[i];
@@ -270,18 +273,18 @@ void Minimizer::constant_linesearch()
 	}
 }
 
-void Minimizer::gradNorm_linesearch()
+void Basic::gradNorm_linesearch()
 {
 }
 
-void Minimizer::stop()
+void Basic::stop()
 {
 	wait_for_parameter_update_slot();
 	halt = true;
 	release_parameter_update_slot();
 }
 
-void Minimizer::update_external_data()
+void Basic::update_external_data()
 {
 	give_parameter_update_slot();
 	std::unique_lock<std::shared_timed_mutex> lock(*data_mutex);
@@ -296,7 +299,7 @@ void Minimizer::update_external_data()
 	progressed = true;
 }
 
-void Minimizer::get_data(
+void Basic::get_data(
 	Eigen::MatrixXd& X, 
 	Eigen::MatrixXd& center, 
 	Eigen::VectorXd& radius, 
@@ -310,7 +313,7 @@ void Minimizer::get_data(
 	progressed = false;
 }
 
-void Minimizer::give_parameter_update_slot()
+void Basic::give_parameter_update_slot()
 {
 	std::unique_lock<std::mutex> lock(*parameters_mutex);
 	params_ready_to_update = true;
@@ -322,7 +325,7 @@ void Minimizer::give_parameter_update_slot()
 	params_ready_to_update = false;
 }
 
-void Minimizer::wait_for_parameter_update_slot()
+void Basic::wait_for_parameter_update_slot()
 {
 	std::unique_lock<std::mutex> lock(*parameters_mutex);
 	wait_for_param_update = true;
@@ -330,7 +333,7 @@ void Minimizer::wait_for_parameter_update_slot()
 		param_cv->wait_for(lock, std::chrono::milliseconds(50));
 }
 
-void Minimizer::release_parameter_update_slot()
+void Basic::release_parameter_update_slot()
 {
 	wait_for_param_update = false;
 	param_cv->notify_one();

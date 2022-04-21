@@ -13,7 +13,7 @@ public:
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> Energy_auxPlanar;
 	std::shared_ptr <BendingNormal> Energy_Planar;
 	std::shared_ptr <FixChosenConstraints> Energy_PinChosenVertices;
-	std::shared_ptr<Minimizer> minimizer;
+	std::shared_ptr<NumericalOptimizations::Basic> minimizer;
 	std::shared_ptr<TotalObjective> totalObjective;
 	float prev_camera_zoom;
 	Eigen::Vector3f prev_camera_translation;

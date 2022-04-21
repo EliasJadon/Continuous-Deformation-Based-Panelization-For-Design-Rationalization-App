@@ -1779,10 +1779,11 @@ void MeshSimplificationPlugin::start_all_minimizers_threads() {
 	for (auto& o : Outputs)
 		start_one_minimizer_thread(o);
 }
+
 void MeshSimplificationPlugin::start_one_minimizer_thread(const OptimizationOutput o) {
 	stop_one_minimizer_thread(o);
-	std::thread minimizer_thread1 = std::thread(&Minimizer::run_new, o.minimizer.get());
-	std::thread minimizer_thread2 = std::thread(&Minimizer::RunSymmetricDirichletGradient, o.minimizer.get());
+	std::thread minimizer_thread1 = std::thread(&NumericalOptimizations::Basic::run_new, o.minimizer.get());
+	std::thread minimizer_thread2 = std::thread(&NumericalOptimizations::Basic::RunSymmetricDirichletGradient, o.minimizer.get());
 	minimizer_thread1.detach();
 	minimizer_thread2.detach();
 	
@@ -1826,7 +1827,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	if (V.rows() == 0 || F.rows() == 0)
 		return;
 
-	Outputs[index].minimizer = std::make_shared<Minimizer>(Outputs[index].CoreID);
+	Outputs[index].minimizer = std::make_shared<NumericalOptimizations::Basic>(Outputs[index].CoreID);
 	Outputs[index].minimizer->lineSearch_type = linesearch_type;
 	Outputs[index].minimizer->Optimizer_type = optimizer_type;
 
