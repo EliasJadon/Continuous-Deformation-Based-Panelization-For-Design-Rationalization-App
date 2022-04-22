@@ -3,15 +3,7 @@
 using namespace ObjectiveFunctions;
 
 Basic::Basic(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) {
-	Eigen::MatrixX3d V3d(V.rows(), 3);
-	if (V.cols() == 2) {
-		V3d.leftCols(2) = V;
-		V3d.col(2).setZero();
-	}
-	else if (V.cols() == 3) {
-		V3d = V;
-	}
-	restShapeV = V3d;
+	restShapeV = V;
 	restShapeF = F;
 	
 	int numV = restShapeV.rows();
@@ -19,7 +11,7 @@ Basic::Basic(const Eigen::MatrixXd& V, const Eigen::MatrixX3i& F) {
 	int numH = OptimizationUtils::getNumberOfHinges(F);
 
 	Cuda::initIndices(mesh_indices, numF, numV, numH);
-	Cuda::AllocateMemory(grad, (3 * numV) + (7 * numF));
+	Cuda::AllocateMemory(grad, mesh_indices.total_variables);
 	for (int i = 0; i < grad.size; i++) {
 		grad.host_arr[i] = 0;
 	}
