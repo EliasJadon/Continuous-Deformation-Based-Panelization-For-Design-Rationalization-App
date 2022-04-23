@@ -13,6 +13,7 @@ namespace ObjectiveFunctions {
 
 		double_3 getN(const Cuda::Array<double>& X, const int fi);
 		double_3 getC(const Cuda::Array<double>& X, const int fi);
+		double_3 getA(const Cuda::Array<double>& X, const int fi);
 		double getR(const Cuda::Array<double>& X, const int fi);
 		double_3 getV(const Cuda::Array<double>& X, const int vi);
 

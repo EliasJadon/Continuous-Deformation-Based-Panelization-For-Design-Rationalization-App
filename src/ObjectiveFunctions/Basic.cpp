@@ -45,6 +45,14 @@ double_3 Basic::getC(const Cuda::Array<double>& X, const int fi) {
 	);
 }
 
+double_3 Basic::getA(const Cuda::Array<double>& X, const int fi) {
+	return double_3(
+		X.host_arr[fi + mesh_indices.startAx],
+		X.host_arr[fi + mesh_indices.startAy],
+		X.host_arr[fi + mesh_indices.startAz]
+	);
+}
+
 double Basic::getR(const Cuda::Array<double>& X, const int fi) {
 	return X.host_arr[fi + mesh_indices.startR];
 }

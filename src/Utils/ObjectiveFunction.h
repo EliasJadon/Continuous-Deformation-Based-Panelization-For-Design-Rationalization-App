@@ -166,6 +166,7 @@ namespace Cuda
 			startVx, startVy, startVz,
 			startNx, startNy, startNz,
 			startCx, startCy, startCz,
+			startAx, startAy, startAz,
 			startR,
 			num_vertices, num_faces, num_hinges,
 			total_variables;
@@ -185,8 +186,11 @@ namespace Cuda
 		I.startCx = 3 * V + 3 * F;
 		I.startCy = 3 * V + 4 * F;
 		I.startCz = 3 * V + 5 * F;
-		I.startR = 3 * V + 6 * F;
-		I.total_variables = 3 * V + 7 * F;
+		I.startR  = 3 * V + 6 * F;
+		I.startAx = 3 * V + 7 * F;
+		I.startAy = 3 * V + 8 * F;
+		I.startAz = 3 * V + 9 * F;
+		I.total_variables = 3 * V + 10 * F;
 	}
 
 }

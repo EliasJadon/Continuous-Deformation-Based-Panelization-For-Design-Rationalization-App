@@ -1,131 +1,122 @@
-﻿#include "ObjectiveFunctions/Panels/AuxSphere.h"
+﻿#include "ObjectiveFunctions/Panels/AuxCylinder.h"
 
 using namespace ObjectiveFunctions::Panels;
 
-AuxSphere::AuxSphere(
+AuxCylinder::AuxCylinder(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{V,F,type}
 {
-	name = "Aux Sphere";
+	name = "Aux Cylinder";
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-AuxSphere::~AuxSphere() {
+AuxCylinder::~AuxCylinder() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double AuxSphere::value(Cuda::Array<double>& curr_x, const bool update)
+double AuxCylinder::value(Cuda::Array<double>& curr_x, const bool update)
 {	
 	double value = 0;
-
 	for (int hi = 0; hi < num_hinges; hi++) {
 		int f0 = hinges_faceIndex[hi][0];
 		int f1 = hinges_faceIndex[hi][1];
-		double R0 = getR(curr_x, f0); 
-		double R1 = getR(curr_x, f1); 
 		double_3 C0 = getC(curr_x, f0);
+		double_3 A0 = getA(curr_x, f0);
+		double R0 = getR(curr_x, f0);
 		double_3 C1 = getC(curr_x, f1);
-			
-		double d_center = squared_norm(sub(C1, C0));
-		double d_radius = pow(R1 - R0, 2);
+		double_3 A1 = getA(curr_x, f1);
+		double R1 = getR(curr_x, f1);
+		double_3 C10 = sub(C1, C0);
+
+		double diff =
+			pow(R1 - R0, 2) +
+			pow(pow(dot(A1, A0), 2) - 1, 2) +
+			pow(pow(dot(C10, A0), 2) - squared_norm(C10), 2);
+
 		value += w1 * restAreaPerHinge[hi] * weight_PerHinge.host_arr[hi] *
-			Phi(d_center + d_radius, Sigmoid_PerHinge.host_arr[hi], penaltyFunction);
+			Phi(diff, Sigmoid_PerHinge.host_arr[hi], penaltyFunction);
 	}
-	
-	for (int fi = 0; fi < restShapeF.rows(); fi++) {
-		const unsigned int x0 = restShapeF(fi,0);
-		const unsigned int x1 = restShapeF(fi,1);
-		const unsigned int x2 = restShapeF(fi,2);
+
+	for (int fi = 0; fi < mesh_indices.num_faces; fi++) {
+		const int x0 = restShapeF(fi, 0);
+		const int x1 = restShapeF(fi, 1);
+		const int x2 = restShapeF(fi, 2);
 		double_3 V0 = getV(curr_x, x0);
 		double_3 V1 = getV(curr_x, x1);
 		double_3 V2 = getV(curr_x, x2);
 		double_3 C = getC(curr_x, fi);
+		double_3 A = getA(curr_x, fi);
 		double R = getR(curr_x, fi);
-		
-		double res =
-			pow(squared_norm(sub(V0, C)) - pow(R, 2), 2) +
-			pow(squared_norm(sub(V1, C)) - pow(R, 2), 2) +
-			pow(squared_norm(sub(V2, C)) - pow(R, 2), 2);
+		double R2 = pow(R, 2);
 
-		value += w2 * res;
+		value += w2 * pow(squared_norm(A) - 1, 2);
+		value += w3 * (
+			pow(squared_norm(cross(A, sub(V0, C))) - R2, 2) +
+			pow(squared_norm(cross(A, sub(V1, C))) - R2, 2) +
+			pow(squared_norm(cross(A, sub(V2, C))) - R2, 2)
+			);
 	}
+
 	if (update)
 		energy_value = value;
 	return value;
 }
 
-void AuxSphere::gradient(Cuda::Array<double>& X, const bool update)
+void AuxCylinder::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;
 
 	for (int hi = 0; hi < num_hinges; hi++) {
-		int f0 = hinges_faceIndex[hi][0];
-		int f1 = hinges_faceIndex[hi][1];
 		
-		double R0 = getR(X, f0);
-		double R1 = getR(X, f1);
-		double_3 C0 = getC(X, f0); 
-		double_3 C1 = getC(X, f1); 
-		
-		double d_center = squared_norm(sub(C1, C0));
-		double d_radius = pow(R1 - R0, 2);
-		double coeff = 2 * w1 * restAreaPerHinge[hi] * weight_PerHinge.host_arr[hi] *
-			dPhi_dm(d_center + d_radius, Sigmoid_PerHinge.host_arr[hi], penaltyFunction);
-
-		grad.host_arr[f0 + mesh_indices.startCx] += (C0.x - C1.x) * coeff; //C0.x
-		grad.host_arr[f0 + mesh_indices.startCy] += (C0.y - C1.y) * coeff;	//C0.y
-		grad.host_arr[f0 + mesh_indices.startCz] += (C0.z - C1.z) * coeff;	//C0.z
-		grad.host_arr[f1 + mesh_indices.startCx] += (C1.x - C0.x) * coeff;	//C1.x
-		grad.host_arr[f1 + mesh_indices.startCy] += (C1.y - C0.y) * coeff;	//C1.y
-		grad.host_arr[f1 + mesh_indices.startCz] += (C1.z - C0.z) * coeff;	//C1.z
-		grad.host_arr[f0 + mesh_indices.startR] += (R0 - R1) * coeff;		//r0
-		grad.host_arr[f1 + mesh_indices.startR] += (R1 - R0) * coeff;		//r1
 	}
 	
 
-	for (int fi = 0; fi < restShapeF.rows(); fi++) {
-		const unsigned int x0 = restShapeF(fi, 0);
-		const unsigned int x1 = restShapeF(fi, 1);
-		const unsigned int x2 = restShapeF(fi, 2);
-		
-		double_3 V0 = getV(X, x0); 
-		double_3 V1 = getV(X, x1); 
-		double_3 V2 = getV(X, x2); 
-		double_3 C = getC(X, fi); 
-		double R = getR(X, fi); 
-		
-		double coeff = w2 * 4;
-		double E0 = coeff * (squared_norm(sub(V0, C)) - pow(R, 2));
-		double E1 = coeff * (squared_norm(sub(V1, C)) - pow(R, 2));
-		double E2 = coeff * (squared_norm(sub(V2, C)) - pow(R, 2));
+	for (int fi = 0; fi < mesh_indices.num_faces; fi++) {
+		const int x0 = restShapeF(fi, 0);
+		const int x1 = restShapeF(fi, 1);
+		const int x2 = restShapeF(fi, 2);
+		double_3 V0 = getV(X, x0);
+		double_3 V1 = getV(X, x1);
+		double_3 V2 = getV(X, x2);
+		double_3 C = getC(X, fi);
+		double_3 A = getA(X, fi);
+		double R = getR(X, fi);
+		double R2 = pow(R, 2);
 
-		grad.host_arr[x0 + mesh_indices.startVx] += E0 * (V0.x - C.x); // V0x
-		grad.host_arr[x0 + mesh_indices.startVy] += E0 * (V0.y - C.y); // V0y
-		grad.host_arr[x0 + mesh_indices.startVz] += E0 * (V0.z - C.z); // V0z
-		grad.host_arr[x1 + mesh_indices.startVx] += E1 * (V1.x - C.x); // V1x
-		grad.host_arr[x1 + mesh_indices.startVy] += E1 * (V1.y - C.y); // V1y
-		grad.host_arr[x1 + mesh_indices.startVz] += E1 * (V1.z - C.z); // V1z
-		grad.host_arr[x2 + mesh_indices.startVx] += E2 * (V2.x - C.x); // V2x
-		grad.host_arr[x2 + mesh_indices.startVy] += E2 * (V2.y - C.y); // V2y
-		grad.host_arr[x2 + mesh_indices.startVz] += E2 * (V2.z - C.z); // V2z
-		grad.host_arr[fi + mesh_indices.startCx] +=
-			(E0 * (C.x - V0.x)) +
-				(E1 * (C.x - V1.x)) +
-				(E2 * (C.x - V2.x)); // Cx
-		grad.host_arr[fi + mesh_indices.startCy] +=
-			(E0 * (C.y - V0.y)) +
-				(E1 * (C.y - V1.y)) +
-				(E2 * (C.y - V2.y)); // Cy
-		grad.host_arr[fi + mesh_indices.startCz] +=
-			(E0 * (C.z - V0.z)) +
-				(E1 * (C.z - V1.z)) +
-				(E2 * (C.z - V2.z)); // Cz
-		grad.host_arr[fi + mesh_indices.startR] +=
-			(E0 * (-1) * R) +
-				(E1 * (-1) * R) +
-				(E2 * (-1) * R); //r
+		double coeff_E2 = w2 * 2 * (squared_norm(A) - 1);
+
+
+		double coeff_E3_0 = w3 * 2 * (squared_norm(cross(A, sub(V0, C))) - R2);
+		double coeff_E3_1 = w3 * 2 * (squared_norm(cross(A, sub(V1, C))) - R2);
+		double coeff_E3_2 = w3 * 2 * (squared_norm(cross(A, sub(V2, C))) - R2);
+		
+
+		//value += w3 * (
+		//	pow(squared_norm(cross(A, sub(V0, C))) - R2, 2) +
+		//	pow(squared_norm(cross(A, sub(V1, C))) - R2, 2) +
+		//	pow(squared_norm(cross(A, sub(V2, C))) - R2, 2)
+		//	);
+
+		//
+
+		//grad.host_arr[x0 + mesh_indices.startVx] += ; // V0x
+		//grad.host_arr[x0 + mesh_indices.startVy] += ; // V0y
+		//grad.host_arr[x0 + mesh_indices.startVz] += ; // V0z
+		//grad.host_arr[x1 + mesh_indices.startVx] += ; // V1x
+		//grad.host_arr[x1 + mesh_indices.startVy] += ; // V1y
+		//grad.host_arr[x1 + mesh_indices.startVz] += ; // V1z
+		//grad.host_arr[x2 + mesh_indices.startVx] += ; // V2x
+		//grad.host_arr[x2 + mesh_indices.startVy] += ; // V2y
+		//grad.host_arr[x2 + mesh_indices.startVz] += ; // V2z
+		//grad.host_arr[fi + mesh_indices.startCx] += ; // Cx
+		//grad.host_arr[fi + mesh_indices.startCy] += ; // Cy
+		//grad.host_arr[fi + mesh_indices.startCz] += ; // Cz
+		grad.host_arr[fi + mesh_indices.startAx] += coeff_E2 * A.x; // Ax
+		grad.host_arr[fi + mesh_indices.startAy] += coeff_E2 * A.y; // Ay
+		grad.host_arr[fi + mesh_indices.startAz] += coeff_E2 * A.z; // Az
+		grad.host_arr[fi + mesh_indices.startR] += -2 * R * (coeff_E3_0 + coeff_E3_1 + coeff_E3_2); // R
 	}
 
 	if (update) {
