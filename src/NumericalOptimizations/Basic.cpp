@@ -9,7 +9,6 @@
 #define BETA2_ADAM 0.9990f
 #define EPSILON_ADAM 1e-8
 #define MAX_STEP_SIZE_ITER 50
-//#define PRINT_CLI
 
 using namespace NumericalOptimizations;
 
