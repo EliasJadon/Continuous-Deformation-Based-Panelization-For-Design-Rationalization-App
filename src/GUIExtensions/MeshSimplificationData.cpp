@@ -168,7 +168,7 @@ void MeshSimplificationData::initMinimizers(
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
 	
 	for (int fi = 0; fi < F.rows(); fi++)
-		A.row(fi) << 0, 0, 1; //(V.row(F(fi, 1)) - V.row(F(fi, 0))).normalized();
+		A.row(fi) << 0, 1, 0; //(V.row(F(fi, 1)) - V.row(F(fi, 0))).normalized();
 	
 	R.setConstant(minus_normals_radius_length);
 
