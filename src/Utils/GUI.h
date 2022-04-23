@@ -26,6 +26,7 @@
 #include "ObjectiveFunctions/Deformation/UniformSmoothness.h"
 #include "ObjectiveFunctions/Panels/AuxPlanar.h"
 #include "ObjectiveFunctions/Panels/AuxSphere.h"
+#include "ObjectiveFunctions/Panels/AuxCylinder.h"
 #include "ObjectiveFunctions/Panels/Planar.h"
 #include "ObjectiveFunctions/Fabrication/RoundRadiuses.h"
 

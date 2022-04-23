@@ -11,6 +11,7 @@ namespace GUIExtensions {
 		std::vector<std::pair<int, int>> SelfIntersection_pairs, flippedFaces_pairs;
 		Eigen::MatrixX3d clustering_faces_colors;
 		std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> Energy_auxSphere;
+		std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder> Energy_auxCylinder;
 		std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> Energy_auxPlanar;
 		std::shared_ptr <ObjectiveFunctions::Panels::Planar> Energy_Planar;
 		std::shared_ptr <ObjectiveFunctions::Deformation::PinChosenVertices> Energy_PinChosenVertices;
