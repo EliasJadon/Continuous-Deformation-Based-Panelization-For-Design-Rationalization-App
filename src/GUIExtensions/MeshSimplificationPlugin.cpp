@@ -1792,7 +1792,7 @@ void MeshSimplificationPlugin::checkGradients()
 	stop_all_minimizers_threads();
 	for (auto& o: Outputs) 
 	{
-		Eigen::VectorXd testX = Eigen::VectorXd::Random(o.totalObjective->objectiveList[0]->grad.size);
+		Eigen::VectorXd testX = Eigen::VectorXd::Random(o.minimizer->mesh_indices.total_variables);
 		o.totalObjective->checkGradient(testX);
 		for (auto const &objective : o.totalObjective->objectiveList)
 			objective->checkGradient(testX);

@@ -114,7 +114,7 @@ void Basic::checkGradient(const Eigen::VectorXd& X)
 		FD_gradient_norm += pow(FD_gradient.host_arr[i], 2);
 	}
 	
-	std::cout << name << ": g.norm() = " << Analytic_gradient_norm << "(analytic) , " << FD_gradient_norm << "(FD)" << std::endl;
+	std::cout << "\n\n" << name << ": g.norm() = " << Analytic_gradient_norm << "(analytic) , " << FD_gradient_norm << "(FD)" << std::endl;
 	for (int i = 0; i < Analytic_gradient.size; i++) {
         double absErr = abs(FD_gradient.host_arr[i] - Analytic_gradient.host_arr[i]);
         double relError = 2 * absErr / (eps + Analytic_gradient.host_arr[i] + FD_gradient.host_arr[i]);
