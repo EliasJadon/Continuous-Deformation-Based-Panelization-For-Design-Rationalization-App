@@ -731,7 +731,8 @@ void MeshSimplificationPlugin::Draw_energies_window()
 					auto SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(obj);
 					auto fR = std::dynamic_pointer_cast<ObjectiveFunctions::Fabrication::RoundRadiuses>(obj);
 
-					auto AC = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(obj);
+					auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(obj);
+					auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(obj);
 					auto ABN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(obj);
 					auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(obj);
 					auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(obj);
@@ -752,8 +753,10 @@ void MeshSimplificationPlugin::Draw_energies_window()
 							
 						}
 
-						if (AC != NULL)
-							ImGui::Combo("Function", (int*)(&(AC->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
+						if (AC1 != NULL)
+							ImGui::Combo("Function", (int*)(&(AC1->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
+						if (AC2 != NULL)
+							ImGui::Combo("Function", (int*)(&(AC2->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
 						if (ABN != NULL)
 							ImGui::Combo("Function", (int*)(&(ABN->penaltyFunction)), "Quadratic\0Exponential\0Sigmoid\0\0");
 						if (BN != NULL)
@@ -778,22 +781,39 @@ void MeshSimplificationPlugin::Draw_energies_window()
 							ImGui::DragScalar("w2", ImGuiDataType_Double, &(ABN->w2), 0.05f, &f64_zero, &f64_max);
 							ImGui::DragScalar("w3", ImGuiDataType_Double, &(ABN->w3), 0.05f, &f64_zero, &f64_max);
 						}
-						if (AC != NULL && AC->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
-							ImGui::Text(("2^" + std::to_string(int(log2(AC->get_SigmoidParameter())))).c_str());
+						if (AC1 != NULL && AC1->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
+							ImGui::Text(("2^" + std::to_string(int(log2(AC1->get_SigmoidParameter())))).c_str());
 							ImGui::SameLine();
 							if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
 							{
-								AC->Inc_SigmoidParameter();
+								AC1->Inc_SigmoidParameter();
 							}
 							ImGui::SameLine();
 							if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
 							{
-								AC->Dec_SigmoidParameter();
+								AC1->Dec_SigmoidParameter();
 							}
 							const double  f64_zero = 0, f64_max = 100000.0;
-							ImGui::DragScalar("w1", ImGuiDataType_Double, &(AC->w1), 0.05f, &f64_zero, &f64_max);
-							ImGui::DragScalar("w2", ImGuiDataType_Double, &(AC->w2), 0.05f, &f64_zero, &f64_max);
-							ImGui::DragScalar("w3", ImGuiDataType_Double, &(AC->w3), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w1", ImGuiDataType_Double, &(AC1->w1), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w2", ImGuiDataType_Double, &(AC1->w2), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w3", ImGuiDataType_Double, &(AC1->w3), 0.05f, &f64_zero, &f64_max);
+						}
+						if (AC2 != NULL && AC2->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
+							ImGui::Text(("2^" + std::to_string(int(log2(AC2->get_SigmoidParameter())))).c_str());
+							ImGui::SameLine();
+							if (ImGui::Button("*", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+							{
+								AC2->Inc_SigmoidParameter();
+							}
+							ImGui::SameLine();
+							if (ImGui::Button("/", ImVec2(ImGui::GetFrameHeight(), ImGui::GetFrameHeight())))
+							{
+								AC2->Dec_SigmoidParameter();
+							}
+							const double  f64_zero = 0, f64_max = 100000.0;
+							ImGui::DragScalar("w1", ImGuiDataType_Double, &(AC2->w1), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w2", ImGuiDataType_Double, &(AC2->w2), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w3", ImGuiDataType_Double, &(AC2->w3), 0.05f, &f64_zero, &f64_max);
 						}
 						if (AS != NULL && AS->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
 							ImGui::Text(("2^" + std::to_string(int(log2(AS->get_SigmoidParameter())))).c_str());
@@ -938,7 +958,8 @@ void MeshSimplificationPlugin::clear_sellected_faces_and_vertices()
 {
 	for (auto& o : Outputs) {
 		o.Energy_auxSphere->Clear_HingesWeights();
-		o.Energy_auxCylinder->Clear_HingesWeights();
+		o.Energy_auxCylinder1->Clear_HingesWeights();
+		o.Energy_auxCylinder2->Clear_HingesWeights();
 		o.Energy_auxPlanar->Clear_HingesWeights();
 		o.Energy_Planar->Clear_HingesWeights();
 		o.Energy_PinChosenVertices->clearConstraints();
@@ -1123,7 +1144,8 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 		double shift = (ui.ADD_DELETE == ADD) ? ADDING_WEIGHT_PER_HINGE_VALUE : -ADDING_WEIGHT_PER_HINGE_VALUE;
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxCylinder->Incr_HingesWeights(brush_faces, shift);
+			out.first.Energy_auxCylinder1->Incr_HingesWeights(brush_faces, shift);
+			out.first.Energy_auxCylinder2->Incr_HingesWeights(brush_faces, shift);
 			out.first.Energy_auxPlanar->Incr_HingesWeights(brush_faces, shift);
 			out.first.Energy_Planar->Incr_HingesWeights(brush_faces, shift);
 			out.first.Energy_auxSphere->Incr_HingesWeights(brush_faces, shift);
@@ -1133,7 +1155,8 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 	if (ui.isBrushingWeightDec() && pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxCylinder->setOne_HingesWeights(brush_faces);
+			out.first.Energy_auxCylinder1->setOne_HingesWeights(brush_faces);
+			out.first.Energy_auxCylinder2->setOne_HingesWeights(brush_faces);
 			out.first.Energy_auxPlanar->setOne_HingesWeights(brush_faces);
 			out.first.Energy_Planar->setOne_HingesWeights(brush_faces);
 			out.first.Energy_auxSphere->setOne_HingesWeights(brush_faces);
@@ -1190,7 +1213,8 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier)
 	if (ui.isUsingDFS() && pick_vertex(output_index, vertex_index)) {
 		ui.updateVerticesListOfDFS(InputModel().F, InputModel().V.rows(), vertex_index);
 		for (auto& out : listOfOutputsToUpdate(output_index)) {
-			out.first.Energy_auxCylinder->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.Energy_auxCylinder1->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.Energy_auxCylinder2->setZero_HingesWeights(ui.DFS_vertices_list);
 			out.first.Energy_auxPlanar->setZero_HingesWeights(ui.DFS_vertices_list);
 			out.first.Energy_Planar->setZero_HingesWeights(ui.DFS_vertices_list);
 			out.first.Energy_auxSphere->setZero_HingesWeights(ui.DFS_vertices_list);
@@ -1201,7 +1225,8 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier)
 		std::vector<int> neigh_faces = Outputs[ui.Output_Index].getNeigh(neighbor_Type, InputModel().F, ui.Face_index, neighbor_distance);
 		double shift = (ui.ADD_DELETE == ADD) ? 5 * ADDING_WEIGHT_PER_HINGE_VALUE : -5 * ADDING_WEIGHT_PER_HINGE_VALUE;
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxCylinder->Incr_HingesWeights(neigh_faces, shift);
+			out.first.Energy_auxCylinder1->Incr_HingesWeights(neigh_faces, shift);
+			out.first.Energy_auxCylinder2->Incr_HingesWeights(neigh_faces, shift);
 			out.first.Energy_auxPlanar->Incr_HingesWeights(neigh_faces, shift);
 			out.first.Energy_Planar->Incr_HingesWeights(neigh_faces, shift);
 			out.first.Energy_auxSphere->Incr_HingesWeights(neigh_faces, shift);
@@ -1322,12 +1347,14 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
-			auto AC = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(out.totalObjective->objectiveList[0]);
-			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[1]);
-			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[2] );
-			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[3]);
+			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
+			auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
+			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[2]);
+			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[3] );
+			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[4]);
 			AP->w = 0;
-			AC->w = 0;
+			AC1->w = 0;
+			AC2->w = 0;
 			BN->w = 1.6;
 			AS->w = 0;
 		}
@@ -1342,12 +1369,14 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
-			auto AC = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(out.totalObjective->objectiveList[0]);
-			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[1]);
-			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[2]);
-			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[3]);
+			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
+			auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
+			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[2]);
+			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[3]);
+			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[4]);
 			AP->w = 1.6;
-			AC->w = 0;
+			AC1->w = 0;
+			AC2->w = 0;
 			BN->w = 0;
 			AS->w = 0;
 		}
@@ -1367,11 +1396,13 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		{
 			for (auto& obj : out.totalObjective->objectiveList) 
 			{
-				auto AC = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(out.totalObjective->objectiveList[0]);
-				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[1]);
-				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[2]);
-				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[3]);
-				AC->w = 0;
+				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
+				auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
+				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[2]);
+				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[3]);
+				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[4]);
+				AC1->w = 0;
+				AC2->w = 0;
 				AP->w = 0;
 				BN->w = 0;
 				AS->w = 1.6;
@@ -1385,7 +1416,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		initSphereAuxVariables = OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS;
 		init_aux_variables();
 		for (auto& out : Outputs) {
-			out.showSphereCenters = true;
+			out.showSphereCenters = out.showCylinderDir = true;
 			out.showSphereEdges = out.showNormEdges =
 				out.showTriangleCenters = out.showFacesNorm = false;
 		}
@@ -1393,11 +1424,13 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		{
 			for (auto& obj : out.totalObjective->objectiveList)
 			{
-				auto AC = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(out.totalObjective->objectiveList[0]);
-				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[1]);
-				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[2]);
-				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[3]);
-				AC->w = 1.6;
+				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
+				auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
+				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[2]);
+				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[3]);
+				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[4]);
+				AC1->w = 1.6;
+				AC2->w = 0;
 				AP->w = 0;
 				BN->w = 0;
 				AS->w = 0;
@@ -1817,7 +1850,7 @@ void MeshSimplificationPlugin::update_data_from_minimizer()
 
 		Eigen::MatrixX3d N;
 		igl::per_face_normals(V, OutputModel(i).F, N);
-		auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(Outputs[i].totalObjective->objectiveList[3]);
+		auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(Outputs[i].totalObjective->objectiveList[4]);
 		if (BN->w != 0) {
 			o.N = N;
 		}
@@ -1892,8 +1925,10 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	std::cout << Utils::ConsoleColor::yellow << "-------Energies, begin-------" << std::endl;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> auxPlanar = std::make_unique<ObjectiveFunctions::Panels::AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxPlanar = auxPlanar;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder> auxCylinder = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxCylinder = auxCylinder;
+	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder1> auxCylinder1 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder1>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	Outputs[index].Energy_auxCylinder1 = auxCylinder1;
+	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder2> auxCylinder2 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder2>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	Outputs[index].Energy_auxCylinder2 = auxCylinder2;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> auxSphere = std::make_unique<ObjectiveFunctions::Panels::AuxSphere>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxSphere = auxSphere;
 	std::shared_ptr <ObjectiveFunctions::Deformation::STVK> stvk = std::make_unique<ObjectiveFunctions::Deformation::STVK>(V, F);
@@ -1915,7 +1950,8 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	{
 		Outputs[index].totalObjective->objectiveList.push_back(move(obj));
 	};
-	add_obj(auxCylinder);
+	add_obj(auxCylinder1);
+	add_obj(auxCylinder2);
 	add_obj(auxSphere);
 	add_obj(auxPlanar);
 	add_obj(planar);

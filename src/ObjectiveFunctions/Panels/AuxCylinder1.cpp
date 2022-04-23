@@ -1,21 +1,21 @@
-﻿#include "ObjectiveFunctions/Panels/AuxCylinder.h"
+﻿#include "ObjectiveFunctions/Panels/AuxCylinder1.h"
 
 using namespace ObjectiveFunctions::Panels;
 
-AuxCylinder::AuxCylinder(
+AuxCylinder1::AuxCylinder1(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{V,F,type}
 {
-	name = "Aux Cylinder";
+	name = "Aux Cylinder1";
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-AuxCylinder::~AuxCylinder() {
+AuxCylinder1::~AuxCylinder1() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double AuxCylinder::value(Cuda::Array<double>& curr_x, const bool update)
+double AuxCylinder1::value(Cuda::Array<double>& curr_x, const bool update)
 {	
 	double value = 0;
 	for (int hi = 0; hi < num_hinges; hi++) {
@@ -64,7 +64,7 @@ double AuxCylinder::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-void AuxCylinder::gradient(Cuda::Array<double>& X, const bool update)
+void AuxCylinder1::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;

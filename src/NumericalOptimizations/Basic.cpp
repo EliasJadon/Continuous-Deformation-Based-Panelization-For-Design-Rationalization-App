@@ -1,6 +1,7 @@
 #include "NumericalOptimizations/Basic.h"
 #include "ObjectiveFunctions/Panels/AuxPlanar.h"
-#include "ObjectiveFunctions/Panels/AuxCylinder.h"
+#include "ObjectiveFunctions/Panels/AuxCylinder1.h"
+#include "ObjectiveFunctions/Panels/AuxCylinder2.h"
 #include "ObjectiveFunctions/Panels/Planar.h"
 #include "ObjectiveFunctions/Panels/AuxSphere.h"
 #include "ObjectiveFunctions/Deformation/SymmetricDirichlet.h"
@@ -104,7 +105,7 @@ void Basic::run_new()
 void Basic::RunSymmetricDirichletGradient() {
 	halt = false;
 	while (!halt) {
-		std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(totalObjective->objectiveList[5]);
+		std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(totalObjective->objectiveList[6]);
 		if (isGradientNeeded) {
 			if (SD->w != 0)
 				SD->gradient(X, false);
@@ -115,19 +116,22 @@ void Basic::RunSymmetricDirichletGradient() {
 
 void Basic::update_lambda()
 {
-	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder> AC =
-		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(totalObjective->objectiveList[0]);
+	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder1> AC1 =
+		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(totalObjective->objectiveList[0]);
+	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder2> AC2 =
+		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(totalObjective->objectiveList[1]);
 	std::shared_ptr<ObjectiveFunctions::Panels::AuxSphere> ASH = 
-		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(totalObjective->objectiveList[1]);
+		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(totalObjective->objectiveList[2]);
 	std::shared_ptr<ObjectiveFunctions::Panels::AuxPlanar> ABN = 
-		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(totalObjective->objectiveList[2]);
+		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(totalObjective->objectiveList[3]);
 	std::shared_ptr<ObjectiveFunctions::Panels::Planar> BN =
-		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(totalObjective->objectiveList[3]);
+		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(totalObjective->objectiveList[4]);
 	
 	if (isAutoLambdaRunning && numIteration >= autoLambda_from && !(numIteration % autoLambda_jump))
 	{
 		const double target = pow(2, -autoLambda_count);
-		AC->Dec_SigmoidParameter(target);
+		AC1->Dec_SigmoidParameter(target);
+		AC2->Dec_SigmoidParameter(target);
 		ASH->Dec_SigmoidParameter(target);
 		ABN->Dec_SigmoidParameter(target);
 		BN->Dec_SigmoidParameter(target);
@@ -162,7 +166,7 @@ void Basic::run_one_iteration_new()
 	OptimizationUtils::Timer t(&timer_sum, &timer_curr);
 	//calculate SD gradient in advance
 	isGradientNeeded = true;
-	std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(totalObjective->objectiveList[5]);
+	std::shared_ptr<ObjectiveFunctions::Deformation::SymmetricDirichlet> SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(totalObjective->objectiveList[6]);
 	
 	timer_avg = timer_sum / ++numIteration;
 	update_lambda();
@@ -252,12 +256,14 @@ void Basic::value_linesearch()
 		if (linesearch_numiterations >= MAX_STEP_SIZE_ITER) linesearch_StopCounter++;
 		else linesearch_StopCounter = 0;
 		if (linesearch_StopCounter >= 7) {
-			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder> AC = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder>(totalObjective->objectiveList[0]);
-			std::shared_ptr<ObjectiveFunctions::Panels::AuxSphere> ASH = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(totalObjective->objectiveList[1]);
-			std::shared_ptr<ObjectiveFunctions::Panels::AuxPlanar> AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(totalObjective->objectiveList[2]);
-			std::shared_ptr<ObjectiveFunctions::Panels::Planar> BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(totalObjective->objectiveList[3]);
+			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder1> AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(totalObjective->objectiveList[0]);
+			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder2> AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(totalObjective->objectiveList[1]);
+			std::shared_ptr<ObjectiveFunctions::Panels::AuxSphere> ASH = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(totalObjective->objectiveList[2]);
+			std::shared_ptr<ObjectiveFunctions::Panels::AuxPlanar> AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(totalObjective->objectiveList[3]);
+			std::shared_ptr<ObjectiveFunctions::Panels::Planar> BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(totalObjective->objectiveList[4]);
 			const double target = pow(2, -autoLambda_count);
-			AC->Dec_SigmoidParameter(target);
+			AC1->Dec_SigmoidParameter(target);
+			AC2->Dec_SigmoidParameter(target);
 			ASH->Dec_SigmoidParameter(target);
 			AP->Dec_SigmoidParameter(target);
 			BN->Dec_SigmoidParameter(target);
