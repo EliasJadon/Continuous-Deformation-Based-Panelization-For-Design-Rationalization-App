@@ -28,6 +28,7 @@
 #include "ObjectiveFunctions/Panels/AuxSphere.h"
 #include "ObjectiveFunctions/Panels/AuxCylinder1.h"
 #include "ObjectiveFunctions/Panels/AuxCylinder2.h"
+#include "ObjectiveFunctions/Panels/AuxCylinder3.h"
 #include "ObjectiveFunctions/Panels/Planar.h"
 #include "ObjectiveFunctions/Fabrication/RoundRadiuses.h"
 

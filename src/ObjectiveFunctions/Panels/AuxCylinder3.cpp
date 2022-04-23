@@ -1,21 +1,21 @@
-﻿#include "ObjectiveFunctions/Panels/AuxCylinder1.h"
+﻿#include "ObjectiveFunctions/Panels/AuxCylinder3.h"
 
 using namespace ObjectiveFunctions::Panels;
 
-AuxCylinder0::AuxCylinder0(
+AuxCylinder3::AuxCylinder3(
 	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction type) : ObjectiveFunctions::Panels::AuxBasic{V,F,type}
 {
-	name = "Aux Cylinder1";
+	name = "Aux Cylinder3";
 	std::cout << "\t" << name << " constructor" << std::endl;
 }
 
-AuxCylinder0::~AuxCylinder0() {
+AuxCylinder3::~AuxCylinder3() {
 	std::cout << "\t" << name << " destructor" << std::endl;
 }
 
-double AuxCylinder0::value(Cuda::Array<double>& curr_x, const bool update)
+double AuxCylinder3::value(Cuda::Array<double>& curr_x, const bool update)
 {	
 	double value = 0;
 	for (int hi = 0; hi < num_hinges; hi++) {
@@ -31,7 +31,7 @@ double AuxCylinder0::value(Cuda::Array<double>& curr_x, const bool update)
 
 		double diff =
 			pow(R1 - R0, 2) +
-			pow(pow(dot(A1, A0), 2) - 1, 2) +
+			squared_norm(sub(A1, A0)) +
 			pow(pow(dot(C10, A0), 2) - squared_norm(C10), 2) +
 			pow(pow(dot(C10, A1), 2) - squared_norm(C10), 2);
 
@@ -64,7 +64,7 @@ double AuxCylinder0::value(Cuda::Array<double>& curr_x, const bool update)
 	return value;
 }
 
-void AuxCylinder0::gradient(Cuda::Array<double>& X, const bool update)
+void AuxCylinder3::gradient(Cuda::Array<double>& X, const bool update)
 {
 	for (int i = 0; i < grad.size; i++)
 		grad.host_arr[i] = 0;
@@ -82,7 +82,7 @@ void AuxCylinder0::gradient(Cuda::Array<double>& X, const bool update)
 
 		double diff =
 			pow(R1 - R0, 2) +
-			pow(pow(dot(A1, A0), 2) - 1, 2) +
+			squared_norm(sub(A1, A0)) +
 			pow(pow(dot(C10, A0), 2) - squared_norm(C10), 2) +
 			pow(pow(dot(C10, A1), 2) - squared_norm(C10), 2);
 
@@ -92,13 +92,13 @@ void AuxCylinder0::gradient(Cuda::Array<double>& X, const bool update)
 		grad.host_arr[f1 + mesh_indices.startR] += (R1 - R0) * coeff; // R1
 		grad.host_arr[f0 + mesh_indices.startR] += (R0 - R1) * coeff; // R0
 
-		double coeff_2 = 2 * coeff * dot(A1, A0) * (pow(dot(A1, A0), 2) - 1);
-		grad.host_arr[f1 + mesh_indices.startAx] += A0.x * coeff_2; // A1.x
-		grad.host_arr[f1 + mesh_indices.startAy] += A0.y * coeff_2; // A1.y
-		grad.host_arr[f1 + mesh_indices.startAz] += A0.z * coeff_2; // A1.z
-		grad.host_arr[f0 + mesh_indices.startAx] += A1.x * coeff_2; // A0.x
-		grad.host_arr[f0 + mesh_indices.startAy] += A1.y * coeff_2; // A0.y
-		grad.host_arr[f0 + mesh_indices.startAz] += A1.z * coeff_2; // A0.z
+		//double coeff_2 = 2 * coeff * dot(A1, A0) * (pow(dot(A1, A0), 2) - 1);
+		grad.host_arr[f1 + mesh_indices.startAx] += (A1.x - A0.x) * coeff; // A1.x
+		grad.host_arr[f1 + mesh_indices.startAy] += (A1.y - A0.y) * coeff; // A1.y
+		grad.host_arr[f1 + mesh_indices.startAz] += (A1.z - A0.z) * coeff; // A1.z
+		grad.host_arr[f0 + mesh_indices.startAx] += (A0.x - A1.x) * coeff; // A0.x
+		grad.host_arr[f0 + mesh_indices.startAy] += (A0.y - A1.y) * coeff; // A0.y
+		grad.host_arr[f0 + mesh_indices.startAz] += (A0.z - A1.z) * coeff; // A0.z
 
 
 		double coeff_3 = coeff * (pow(dot(C10, A0), 2) - squared_norm(C10));
