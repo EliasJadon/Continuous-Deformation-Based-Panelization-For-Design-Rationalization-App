@@ -878,6 +878,9 @@ void MeshSimplificationPlugin::Draw_output_window()
 		if (ImGui::Checkbox("Face Centers", &(out.showTriangleCenters)) && isUpdateAll)
 			for (auto&oi : Outputs)
 				oi.showTriangleCenters = out.showTriangleCenters;
+		if(ImGui::Checkbox("Cylinder Dir", &(out.showCylinderDir)) && isUpdateAll)
+			for (auto& oi : Outputs)
+				oi.showCylinderDir = out.showCylinderDir;
 		ImGui::End();
 	}
 }
@@ -1293,19 +1296,21 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 			face_coloring_Type = app_utils::Face_Colors::SIGMOID_PARAMETER;
 		}
 	}
-	if ((key == 'R' || key == 'r') && modifiers == 1) {
-		for (auto& out : Outputs) {
-			out.showNormEdges = out.showFacesNorm = false;
-		}
-		for (auto& d : viewer->data_list)
-			d.show_faces = true;
-	}
 	if ((key == 'f' || key == 'F') && modifiers == 1) {
-		for (auto& out : Outputs) {
-			out.showNormEdges = out.showFacesNorm = true;
+		if (viewer->data_list[0].show_faces == false) {
+			for (auto& out : Outputs) {
+				out.showNormEdges = out.showFacesNorm = false;
+			}
+			for (auto& d : viewer->data_list)
+				d.show_faces = true;
 		}
-		for (auto& d : viewer->data_list)
-			d.show_faces = false;
+		else {
+			for (auto& out : Outputs) {
+				out.showNormEdges = out.showFacesNorm = true;
+			}
+			for (auto& d : viewer->data_list)
+				d.show_faces = false;
+		}
 	}
 	if ((key == 'q' || key == 'Q') && modifiers == 1) 
 	{
@@ -1490,7 +1495,9 @@ IGL_INLINE bool MeshSimplificationPlugin::pre_draw()
 			m.add_edges(o.getCenterOfFaces(), o.getSphereEdges(), o.color_per_sphere_edge);
 		if (o.showNormEdges)
 			m.add_edges(o.getCenterOfFaces(), o.getFacesNorm(), o.color_per_norm_edge);
-			
+		if(o.showCylinderDir)
+			m.add_edges(o.center_of_sphere, o.center_of_sphere + o.cylinder_dir, o.color_per_norm_edge);
+
 		// Update Vertices colors for UI sigmoid weights
 		int num_hinges = AS->mesh_indices.num_hinges;
 		const Eigen::VectorXi& x0_index = AS->x0_GlobInd;

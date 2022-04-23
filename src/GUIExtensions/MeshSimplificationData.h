@@ -24,9 +24,7 @@ namespace GUIExtensions {
 		Eigen::MatrixXd color_per_face_norm, color_per_sphere_edge, color_per_norm_edge;
 		int ModelID, CoreID;
 		ImVec2 screen_position, screen_size, results_window_position, outputs_window_position;
-		bool showSphereEdges, showNormEdges, showTriangleCenters, showSphereCenters, showFacesNorm;
-
-
+		bool showSphereEdges, showCylinderDir, showNormEdges, showTriangleCenters, showSphereCenters, showFacesNorm;
 
 		MeshSimplificationData(
 			const int CoreID,
@@ -38,6 +36,7 @@ namespace GUIExtensions {
 		Eigen::MatrixXd getCenterOfFaces();
 		Eigen::MatrixXd getFacesNormals();
 		Eigen::MatrixXd getFacesNorm();
+		Eigen::MatrixXd getCylinderDir();
 		std::vector<int> GlobNeighSphereCenters(const int fi, const float distance);
 		std::vector<int> FaceNeigh(const Eigen::Vector3d center, const float distance);
 		std::vector<int> GlobNeighNorms(const int fi, const float distance);

@@ -34,6 +34,8 @@ Eigen::MatrixXd MeshSimplificationData::getFacesNorm() {
 	return center_of_faces + normals;
 }
 
+
+
 std::vector<int> MeshSimplificationData::GlobNeighSphereCenters(
 	const int fi, 
 	const float distance) 
@@ -223,7 +225,7 @@ void MeshSimplificationData::initMinimizers(
 		const int v0 = F(fi, 0);
 		const int v1 = F(fi, 1);
 		const int v2 = F(fi, 2);
-		cylinder_dir0.row(fi) = V.row(v1) - V.row(v0);
+		cylinder_dir0.row(fi) = (V.row(v1) - V.row(v0)).normalized();
 	}
 	
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
