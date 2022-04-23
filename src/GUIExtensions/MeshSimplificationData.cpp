@@ -218,18 +218,22 @@ void MeshSimplificationData::initMinimizers(
 			center0.row(i) = this->center_of_faces.row(i) - Radius0(i) * normals.row(i);
 	}
 	
+	Eigen::MatrixXd cylinder_dir0(F.rows(), 3);
+	for (int fi = 0; fi < F.rows(); fi++) {
+		const int v0 = F(fi, 0);
+		const int v1 = F(fi, 1);
+		const int v2 = F(fi, 2);
+		cylinder_dir0.row(fi) = V.row(v1) - V.row(v0);
+	}
+	
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
 	this->center_of_sphere = center0;
 	this->radiuses = Radius0;
 	this->normals = normals;
+	this->cylinder_dir = cylinder_dir0;
 
-	minimizer->init(totalObjective, V, F, normals, center0, Radius0);
+	minimizer->init(totalObjective, V, F, normals, center0, Radius0, cylinder_dir0);
 }
-
-//void OptimizationOutput::updateActiveMinimizer(const Cuda::OptimizerType optimizerType)
-//{
-//	minimizer->Optimizer_type = optimizerType;
-//}
 
 Eigen::MatrixX4d MeshSimplificationData::getValues(const app_utils::Face_Colors face_coloring_Type) {
 	Eigen::MatrixX3d N = getFacesNormals();

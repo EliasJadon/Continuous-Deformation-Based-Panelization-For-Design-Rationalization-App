@@ -1805,7 +1805,7 @@ void MeshSimplificationPlugin::update_data_from_minimizer()
 	{
 		Eigen::MatrixXd V(original_V.rows(), 3);
 		auto& o = Outputs[i];
-		o.minimizer->get_data(V, o.center_of_sphere, o.radiuses, o.normals);
+		o.minimizer->external_get_data(V, o.center_of_sphere, o.radiuses, o.normals, o.cylinder_dir);
 		o.center_of_faces = OptimizationUtils::center_per_triangle(V, InputModel().F);
 
 		Eigen::MatrixX3d N;

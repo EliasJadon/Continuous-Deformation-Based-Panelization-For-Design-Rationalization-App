@@ -20,18 +20,20 @@ namespace NumericalOptimizations {
 		void run_one_iteration_new();
 		void external_stop();
 		bool external_is_running();
-		void get_data(
+		void external_get_data(
 			Eigen::MatrixXd& X,
 			Eigen::MatrixXd& center,
 			Eigen::VectorXd& radius,
-			Eigen::MatrixXd& norm);
+			Eigen::MatrixXd& norm,
+			Eigen::MatrixXd& cylinder_dir);
 		void init(
 			std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
 			const Eigen::MatrixXd& V0,
 			const Eigen::MatrixXi& F0,
 			const Eigen::MatrixXd& norm0,
 			const Eigen::MatrixXd& center0,
-			const Eigen::MatrixXd& radius0);
+			const Eigen::MatrixXd& radius0,
+			const Eigen::MatrixXd& cylinder_dir0);
 		void upload_x(const Eigen::VectorXd& X0);
 
 		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;

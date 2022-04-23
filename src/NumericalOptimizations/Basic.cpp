@@ -13,7 +13,10 @@
 using namespace NumericalOptimizations;
 
 
-Basic::Basic(const int solverID) : solverID(solverID) {}
+Basic::Basic(const int solverID){
+	this->solverID = solverID;
+	this->constantStep_LineSearch = 0.01;
+}
 
 void Basic::init(
 	std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
@@ -21,16 +24,18 @@ void Basic::init(
 	const Eigen::MatrixXi& F0,
 	const Eigen::MatrixXd& norm0,
 	const Eigen::MatrixXd& center0,
-	const Eigen::MatrixXd& radius0) 
+	const Eigen::MatrixXd& radius0,
+	const Eigen::MatrixXd& cylinder_dir0)
 {
 	assert(Tobjective != NULL);
 	assert(V0.rows() >= 3 && V0.cols() == 3);
 	assert(F0.rows() >= 1 && F0.cols() == 3);
 	assert(norm0.rows() == F0.rows() && norm0.cols() == 3);
 	assert(center0.rows() == F0.rows() && center0.cols() == 3);
-	assert(radius0.size() == F0.rows());
+	assert(radius0.rows() == F0.rows() && radius0.cols() == 1);
+	assert(cylinder_dir0.rows() == F0.rows() && cylinder_dir0.cols() == 3);
 	
-	this->constantStep_LineSearch = 0.01;
+	
 	this->totalObjective = Tobjective;
 
 	int numH = OptimizationUtils::getNumberOfHinges(F0);
@@ -55,6 +60,9 @@ void Basic::init(
 		X.host_arr[fi + mesh_indices.startCy] = center0(fi, 1);
 		X.host_arr[fi + mesh_indices.startCz] = center0(fi, 2);
 		X.host_arr[fi + mesh_indices.startR] = radius0(fi);
+		X.host_arr[fi + mesh_indices.startAx] = cylinder_dir0(fi, 0);
+		X.host_arr[fi + mesh_indices.startAy] = cylinder_dir0(fi, 1);
+		X.host_arr[fi + mesh_indices.startAz] = cylinder_dir0(fi, 2);
 	}
 	for (int i = 0; i < mesh_indices.total_variables; i++) {
 		v_adam.host_arr[i] = 0;
@@ -280,11 +288,12 @@ void Basic::external_stop()
 	while (is_running != false);
 }
 
-void Basic::get_data(
+void Basic::external_get_data(
 	Eigen::MatrixXd& X, 
 	Eigen::MatrixXd& center, 
 	Eigen::VectorXd& radius, 
-	Eigen::MatrixXd& norm)
+	Eigen::MatrixXd& norm,
+	Eigen::MatrixXd& cylinder_dir)
 {
 	for (int vi = 0; vi < mesh_indices.num_vertices; vi++) {
 		X(vi, 0) = this->X.host_arr[vi + mesh_indices.startVx];
@@ -295,6 +304,9 @@ void Basic::get_data(
 		center(fi, 0) = this->X.host_arr[fi + mesh_indices.startCx];
 		center(fi, 1) = this->X.host_arr[fi + mesh_indices.startCy];
 		center(fi, 2) = this->X.host_arr[fi + mesh_indices.startCz];
+		cylinder_dir(fi, 0) = this->X.host_arr[fi + mesh_indices.startAx];
+		cylinder_dir(fi, 1) = this->X.host_arr[fi + mesh_indices.startAy];
+		cylinder_dir(fi, 2) = this->X.host_arr[fi + mesh_indices.startAz];
 		norm(fi, 0) = this->X.host_arr[fi + mesh_indices.startNx];
 		norm(fi, 1) = this->X.host_arr[fi + mesh_indices.startNy];
 		norm(fi, 2) = this->X.host_arr[fi + mesh_indices.startNz];

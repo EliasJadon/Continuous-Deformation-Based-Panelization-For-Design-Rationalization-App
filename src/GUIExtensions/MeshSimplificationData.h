@@ -4,7 +4,7 @@
 namespace GUIExtensions {
 	class MeshSimplificationData {
 	public:
-		Eigen::MatrixXd center_of_faces, center_of_sphere, normals;
+		Eigen::MatrixXd center_of_faces, center_of_sphere, normals, cylinder_dir;
 		Clustering_Colors clustering_colors;
 		Eigen::VectorXd radiuses;
 		std::vector<std::vector<int>> clustering_faces_indices;
