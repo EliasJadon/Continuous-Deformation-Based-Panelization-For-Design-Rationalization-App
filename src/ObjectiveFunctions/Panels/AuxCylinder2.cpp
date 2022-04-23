@@ -31,7 +31,7 @@ double AuxCylinder2::value(Cuda::Array<double>& curr_x, const bool update)
 
 		double diff =
 			pow(R1 - R0, 2) +
-			pow(pow(dot(A1, A0), 2) - 1, 2) +
+			squared_norm(sub(A1, A0)) +
 			pow(pow(dot(C10, A0), 2) - squared_norm(C10), 2) +
 			pow(pow(dot(C10, A1), 2) - squared_norm(C10), 2);
 
@@ -82,7 +82,7 @@ void AuxCylinder2::gradient(Cuda::Array<double>& X, const bool update)
 
 		double diff =
 			pow(R1 - R0, 2) +
-			pow(pow(dot(A1, A0), 2) - 1, 2) +
+			squared_norm(sub(A1, A0)) +
 			pow(pow(dot(C10, A0), 2) - squared_norm(C10), 2) +
 			pow(pow(dot(C10, A1), 2) - squared_norm(C10), 2);
 
@@ -92,13 +92,13 @@ void AuxCylinder2::gradient(Cuda::Array<double>& X, const bool update)
 		grad.host_arr[f1 + mesh_indices.startR] += (R1 - R0) * coeff; // R1
 		grad.host_arr[f0 + mesh_indices.startR] += (R0 - R1) * coeff; // R0
 
-		double coeff_2 = 2 * coeff * dot(A1, A0) * (pow(dot(A1, A0), 2) - 1);
-		grad.host_arr[f1 + mesh_indices.startAx] += A0.x * coeff_2; // A1.x
-		grad.host_arr[f1 + mesh_indices.startAy] += A0.y * coeff_2; // A1.y
-		grad.host_arr[f1 + mesh_indices.startAz] += A0.z * coeff_2; // A1.z
-		grad.host_arr[f0 + mesh_indices.startAx] += A1.x * coeff_2; // A0.x
-		grad.host_arr[f0 + mesh_indices.startAy] += A1.y * coeff_2; // A0.y
-		grad.host_arr[f0 + mesh_indices.startAz] += A1.z * coeff_2; // A0.z
+		//double coeff_2 = 2 * coeff * dot(A1, A0) * (pow(dot(A1, A0), 2) - 1);
+		grad.host_arr[f1 + mesh_indices.startAx] += (A1.x - A0.x) * coeff; // A1.x
+		grad.host_arr[f1 + mesh_indices.startAy] += (A1.y - A0.y) * coeff; // A1.y
+		grad.host_arr[f1 + mesh_indices.startAz] += (A1.z - A0.z) * coeff; // A1.z
+		grad.host_arr[f0 + mesh_indices.startAx] += (A0.x - A1.x) * coeff; // A0.x
+		grad.host_arr[f0 + mesh_indices.startAy] += (A0.y - A1.y) * coeff; // A0.y
+		grad.host_arr[f0 + mesh_indices.startAz] += (A0.z - A1.z) * coeff; // A0.z
 
 
 		double coeff_3 = coeff * (pow(dot(C10, A0), 2) - squared_norm(C10));
