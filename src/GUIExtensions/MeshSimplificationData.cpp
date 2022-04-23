@@ -158,40 +158,30 @@ void MeshSimplificationData::initMinimizers(
 	const int distance_from, const int distance_to,
 	const double minus_normals_radius_length)
 {
-	Eigen::MatrixX3d normals;
-	igl::per_face_normals((Eigen::MatrixX3d)V, (Eigen::MatrixX3i)F, normals);
-
-	Eigen::MatrixXd center0;
-	Eigen::VectorXd Radius0;
+	N.resize(F.rows(), 3);
+	C.resize(F.rows(), 3);
+	A.resize(F.rows(), 3);
+	R.resize(F.rows());
+	Eigen::MatrixX3d N_temp;
+	igl::per_face_normals((Eigen::MatrixX3d)V, (Eigen::MatrixX3i)F, N_temp);
+	N = N_temp;
+	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
+	
+	for (int fi = 0; fi < F.rows(); fi++)
+		A.row(fi) << 0, 0, 1; //(V.row(F(fi, 1)) - V.row(F(fi, 0))).normalized();
+	
+	R.setConstant(minus_normals_radius_length);
 
 	if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::SPHERE_FIT)
-		OptimizationUtils::Least_Squares_Sphere_Fit(distance_from, distance_to, V, F, center0, Radius0);
+		OptimizationUtils::Least_Squares_Sphere_Fit(distance_from, distance_to, V, F, C, R);
 	else if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::MODEL_CENTER_POINT)
-		OptimizationUtils::center_of_mesh(V, F, center0, Radius0);
+		OptimizationUtils::center_of_mesh(V, F, C, R);
 	else if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS) {
-		this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
-		Radius0.resize(F.rows());
-		center0.resize(F.rows(), 3);
-		Radius0.setConstant(minus_normals_radius_length);
-		for (int i = 0; i < center0.rows(); i++)
-			center0.row(i) = this->center_of_faces.row(i) - Radius0(i) * normals.row(i);
+		for (int i = 0; i < C.rows(); i++)
+			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
 	}
 	
-	Eigen::MatrixXd cylinder_dir0(F.rows(), 3);
-	for (int fi = 0; fi < F.rows(); fi++) {
-		const int v0 = F(fi, 0);
-		const int v1 = F(fi, 1);
-		const int v2 = F(fi, 2);
-		cylinder_dir0.row(fi) = (V.row(v1) - V.row(v0)).normalized();
-	}
-	
-	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
-	this->C = center0;
-	this->R = Radius0;
-	this->N = normals;
-	this->A = cylinder_dir0;
-
-	minimizer->init(totalObjective, V, F, normals, center0, Radius0, cylinder_dir0);
+	minimizer->init(totalObjective, V, F, N, C, R, A);
 }
 
 Eigen::MatrixX4d MeshSimplificationData::getValues(const app_utils::Face_Colors face_coloring_Type) {
