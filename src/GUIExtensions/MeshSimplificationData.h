@@ -4,9 +4,10 @@
 namespace GUIExtensions {
 	class MeshSimplificationData {
 	public:
-		Eigen::MatrixXd center_of_faces, center_of_sphere, normals, cylinder_dir;
+		Eigen::MatrixXd center_of_faces, C, N, A;
+		Eigen::VectorXd R;
+
 		Clustering_Colors clustering_colors;
-		Eigen::VectorXd radiuses;
 		std::vector<std::vector<int>> clustering_faces_indices;
 		std::vector<std::pair<int, int>> SelfIntersection_pairs, flippedFaces_pairs;
 		Eigen::MatrixX3d clustering_faces_colors;
@@ -31,20 +32,12 @@ namespace GUIExtensions {
 			const int meshID,
 			igl::opengl::glfw::Viewer* viewer);
 		~MeshSimplificationData() = default;
-		double getRadiusOfSphere(int index);
-		Eigen::VectorXd getRadiusOfSphere();
-		Eigen::MatrixXd getCenterOfFaces();
-		Eigen::MatrixXd getFacesNormals();
-		Eigen::MatrixXd getFacesNorm();
-		Eigen::MatrixXd getCylinderDir();
 		std::vector<int> GlobNeighSphereCenters(const int fi, const float distance);
 		std::vector<int> FaceNeigh(const Eigen::Vector3d center, const float distance);
 		std::vector<int> GlobNeighNorms(const int fi, const float distance);
 		std::vector<int> getNeigh(const app_utils::Neighbor_Type type, const Eigen::MatrixXi& F, const int fi, const float distance);
 		std::vector<int> adjSetOfTriangles(const Eigen::MatrixXi& F, const std::vector<int> selected, std::vector<std::vector<std::vector<int>>> TT);
 		std::vector<int> vectorsIntersection(const std::vector<int>& A, const std::vector<int>& B);
-		Eigen::MatrixXd getCenterOfSphere();
-		Eigen::MatrixXd getSphereEdges();
 		Eigen::MatrixX4d getValues(const app_utils::Face_Colors face_coloring_Type);
 		void initFaceColors(
 			const int numF,

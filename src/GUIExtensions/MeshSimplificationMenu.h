@@ -41,8 +41,8 @@ namespace GUIExtensions {
 				Eigen::MatrixXd v_out = factor * dp->OutputModel(dp->ActiveOutput).V;
 				Eigen::MatrixXd v_in = factor * dp->InputModel().V;
 				Eigen::MatrixXi f = dp->OutputModel(dp->ActiveOutput).F;
-				Eigen::VectorXd radiuses = factor * dp->Outputs[dp->ActiveOutput].getRadiusOfSphere();
-				Eigen::MatrixXd centers = factor * dp->Outputs[dp->ActiveOutput].getCenterOfSphere();
+				Eigen::VectorXd radiuses = factor * dp->Outputs[dp->ActiveOutput].R;
+				Eigen::MatrixXd centers = factor * dp->Outputs[dp->ActiveOutput].C;
 
 				// create new directory for saving the data
 				std::string main_file_path = OptimizationUtils::ProjectPath() + "models\\outputmodels\\" + dp->modelName + app_utils::CurrentTime() + "\\";
@@ -113,9 +113,9 @@ namespace GUIExtensions {
 				Eigen::MatrixXd v_out = dp->OutputModel(dp->ActiveOutput).V;
 				Eigen::MatrixXd v_in = dp->InputModel().V;
 				Eigen::MatrixXi f = dp->OutputModel(dp->ActiveOutput).F;
-				Eigen::VectorXd radiuses = dp->Outputs[dp->ActiveOutput].getRadiusOfSphere();
-				Eigen::MatrixXd centers = dp->Outputs[dp->ActiveOutput].getCenterOfSphere();
-				Eigen::MatrixXd normals = dp->Outputs[dp->ActiveOutput].getFacesNormals();
+				Eigen::VectorXd radiuses = dp->Outputs[dp->ActiveOutput].R;
+				Eigen::MatrixXd centers = dp->Outputs[dp->ActiveOutput].C;
+				Eigen::MatrixXd normals = dp->Outputs[dp->ActiveOutput].N;
 
 				// create new directory for saving the data
 				std::string main_file_path = OptimizationUtils::ProjectPath() + "models\\outputmodels\\" + dp->modelName + app_utils::CurrentTime() + "\\";

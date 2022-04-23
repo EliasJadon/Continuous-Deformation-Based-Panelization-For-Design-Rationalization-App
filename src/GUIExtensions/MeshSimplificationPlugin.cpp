@@ -279,7 +279,7 @@ void MeshSimplificationPlugin::CollapsingHeader_measures() {
 			for (int oi = 0; oi < Outputs.size(); oi++) {
 				const Eigen::MatrixXd& V = OutputModel(oi).V;
 				const Eigen::MatrixXi& F = OutputModel(oi).F;
-				const Eigen::MatrixXd& C = Outputs[oi].getCenterOfSphere();
+				const Eigen::MatrixXd& C = Outputs[oi].C;
 				const std::vector<std::vector<int>>& clusters = Outputs[oi].clustering_faces_indices;
 				if (face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)
 					app_utils::sphere_error_distribution(V, F, C, clusters, max_all, min_all, avg_all, std_all);
@@ -302,7 +302,7 @@ void MeshSimplificationPlugin::CollapsingHeader_measures() {
 			for (int oi = 0; oi < Outputs.size(); oi++) {
 				const Eigen::MatrixXd& V = OutputModel(oi).V;
 				const Eigen::MatrixXi& F = OutputModel(oi).F;
-				const Eigen::MatrixXd& C = Outputs[oi].getCenterOfSphere();
+				const Eigen::MatrixXd& C = Outputs[oi].C;
 				const std::vector<std::vector<int>>& clusters = Outputs[oi].clustering_faces_indices;
 				static double max = -1, min = -1, avg = -1, std = -1;
 				int output_index, face_index;
@@ -743,7 +743,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 							ImGui::DragInt("max", &(fR->max));
 							fR->max = fR->max > fR->min ? fR->max : fR->min + 1;
 							ImGui::DragFloat("alpha", &(fR->alpha), 0.001);
-							Eigen::VectorXd Radiuses = Outputs[ActiveOutput].getRadiusOfSphere();
+							Eigen::VectorXd Radiuses = Outputs[ActiveOutput].R;
 							if (ImGui::Button("update Alpha")) {
 								fR->alpha = fR->max / Radiuses.maxCoeff();
 							}
@@ -1486,17 +1486,17 @@ IGL_INLINE bool MeshSimplificationPlugin::pre_draw()
 		for (auto vi : o.Energy_PinChosenVertices->getConstraintsIndices())
 			m.add_points(m.V.row(vi), Fixed_vertex_color.cast<double>().transpose());
 		if (o.showFacesNorm)
-			m.add_points(o.getFacesNorm(), o.color_per_face_norm);
+			m.add_points(o.center_of_faces + o.N, o.color_per_face_norm);
 		if (o.showTriangleCenters)
-			m.add_points(o.getCenterOfFaces(), o.color_per_vertex_center);
+			m.add_points(o.center_of_faces, o.color_per_vertex_center);
 		if (o.showSphereCenters)
-			m.add_points(o.getCenterOfSphere(), o.color_per_sphere_center);
+			m.add_points(o.C, o.color_per_sphere_center);
 		if (o.showSphereEdges)
-			m.add_edges(o.getCenterOfFaces(), o.getSphereEdges(), o.color_per_sphere_edge);
+			m.add_edges(o.center_of_faces, o.C, o.color_per_sphere_edge);
 		if (o.showNormEdges)
-			m.add_edges(o.getCenterOfFaces(), o.getFacesNorm(), o.color_per_norm_edge);
+			m.add_edges(o.center_of_faces, o.center_of_faces + o.N, o.color_per_norm_edge);
 		if(o.showCylinderDir)
-			m.add_edges(o.center_of_sphere, o.center_of_sphere + o.cylinder_dir, o.color_per_norm_edge);
+			m.add_edges(o.C, o.C + o.A, o.color_per_norm_edge);
 
 		// Update Vertices colors for UI sigmoid weights
 		int num_hinges = AS->mesh_indices.num_hinges;
@@ -1603,10 +1603,10 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 	for (auto& o:Outputs) {
 		//Mark the clusters if needed
 		if (clusteringType == app_utils::ClusteringType::NO_CLUS && (face_coloring_Type == app_utils::Face_Colors::NORMALS_CLUSTERING || face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)) {
-			Eigen::MatrixX3d P = o.getFacesNormals();
+			Eigen::MatrixX3d P = o.N;
 			if (face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING) {
-				Eigen::MatrixXd C = o.getCenterOfSphere();
-				Eigen::VectorXd R = o.getRadiusOfSphere();
+				Eigen::MatrixXd C = o.C;
+				Eigen::VectorXd R = o.R;
 				for (int fi = 0; fi < C.rows(); fi++)
 					P.row(fi) << C(fi, 0) * R(fi), C(fi, 1), C(fi, 2);
 			}
@@ -1812,14 +1812,14 @@ void MeshSimplificationPlugin::update_data_from_minimizer()
 	{
 		Eigen::MatrixXd V(original_V.rows(), 3);
 		auto& o = Outputs[i];
-		o.minimizer->external_get_data(V, o.center_of_sphere, o.radiuses, o.normals, o.cylinder_dir);
+		o.minimizer->external_get_data(V, o.C, o.R, o.N, o.A);
 		o.center_of_faces = OptimizationUtils::center_per_triangle(V, InputModel().F);
 
 		Eigen::MatrixX3d N;
 		igl::per_face_normals(V, OutputModel(i).F, N);
 		auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(Outputs[i].totalObjective->objectiveList[3]);
 		if (BN->w != 0) {
-			o.normals = N;
+			o.N = N;
 		}
 		
 		OutputModel(i).set_vertices(V);

@@ -12,37 +12,13 @@ MeshSimplificationData::MeshSimplificationData(
 	showFacesNorm = showSphereEdges = showNormEdges = showTriangleCenters = showSphereCenters = false;
 }
 
-double MeshSimplificationData::getRadiusOfSphere(int index) 
-{
-	return this->radiuses(index);
-}
-
-Eigen::VectorXd MeshSimplificationData::getRadiusOfSphere() 
-{
-	return this->radiuses;
-}
-
-Eigen::MatrixXd MeshSimplificationData::getCenterOfFaces() {
-	return center_of_faces;
-}
-
-Eigen::MatrixXd MeshSimplificationData::getFacesNormals() {
-	return normals;
-}
-
-Eigen::MatrixXd MeshSimplificationData::getFacesNorm() {
-	return center_of_faces + normals;
-}
-
-
-
 std::vector<int> MeshSimplificationData::GlobNeighSphereCenters(
 	const int fi, 
 	const float distance) 
 {
 	std::vector<int> Neighbors; Neighbors.clear();
-	for (int i = 0; i < center_of_sphere.rows(); i++)
-		if (((center_of_sphere.row(fi) - center_of_sphere.row(i)).norm() + abs(radiuses(fi) - radiuses(i))) < distance)
+	for (int i = 0; i < C.rows(); i++)
+		if (((C.row(fi) - C.row(i)).norm() + abs(R(fi) - R(i))) < distance)
 			Neighbors.push_back(i);
 	return Neighbors;
 }
@@ -63,8 +39,8 @@ std::vector<int> MeshSimplificationData::FaceNeigh(const Eigen::Vector3d center,
 std::vector<int> MeshSimplificationData::GlobNeighNorms(const int fi, const float distance) 
 {
 	std::vector<int> Neighbors; Neighbors.clear();
-	for (int i = 0; i < normals.rows(); i++)
-		if ((normals.row(fi) - normals.row(i)).squaredNorm() < distance)
+	for (int i = 0; i < N.rows(); i++)
+		if ((N.row(fi) - N.row(i)).squaredNorm() < distance)
 			Neighbors.push_back(i);
 	return Neighbors;
 }
@@ -126,25 +102,6 @@ std::vector<int> MeshSimplificationData::vectorsIntersection(
 			intersection.push_back(fi);
 	}
 	return intersection;
-}
-
-Eigen::MatrixXd MeshSimplificationData::getCenterOfSphere() 
-{
-	return center_of_sphere;
-}
-
-Eigen::MatrixXd MeshSimplificationData::getSphereEdges() 
-{
-	int numF = center_of_sphere.rows();
-	Eigen::MatrixXd c(numF, 3);
-	Eigen::MatrixXd empty;
-	if (getCenterOfFaces().size() == 0 || getCenterOfSphere().size() == 0)
-		return empty;
-	for (int fi = 0; fi < numF; fi++) {
-		Eigen::RowVectorXd v = (getCenterOfSphere().row(fi) - getCenterOfFaces().row(fi)).normalized();
-		c.row(fi) = getCenterOfFaces().row(fi) + radiuses(fi) *v;
-	}
-	return c;
 }
 
 void MeshSimplificationData::initFaceColors(
@@ -229,18 +186,15 @@ void MeshSimplificationData::initMinimizers(
 	}
 	
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
-	this->center_of_sphere = center0;
-	this->radiuses = Radius0;
-	this->normals = normals;
-	this->cylinder_dir = cylinder_dir0;
+	this->C = center0;
+	this->R = Radius0;
+	this->N = normals;
+	this->A = cylinder_dir0;
 
 	minimizer->init(totalObjective, V, F, normals, center0, Radius0, cylinder_dir0);
 }
 
 Eigen::MatrixX4d MeshSimplificationData::getValues(const app_utils::Face_Colors face_coloring_Type) {
-	Eigen::MatrixX3d N = getFacesNormals();
-	Eigen::MatrixXd C = getCenterOfSphere();
-	Eigen::VectorXd R = getRadiusOfSphere();
 	Eigen::MatrixX4d values(N.rows(), 4);
 	for (int fi = 0; fi < N.rows(); fi++) {
 		values.row(fi) = Eigen::Vector4d(N(fi, 0), N(fi, 1), N(fi, 2), 0);
