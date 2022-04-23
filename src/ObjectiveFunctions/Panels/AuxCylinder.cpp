@@ -51,11 +51,11 @@ double AuxCylinder::value(Cuda::Array<double>& curr_x, const bool update)
 		double R2 = pow(R, 2);
 
 		value += w2 * pow(squared_norm(A) - 1, 2);
-		/*value += w3 * (
+		value += w3 * (
 			pow(squared_norm(cross(A, sub(V0, C))) - R2, 2) +
 			pow(squared_norm(cross(A, sub(V1, C))) - R2, 2) +
 			pow(squared_norm(cross(A, sub(V2, C))) - R2, 2)
-			);*/
+			);
 	}
 
 	if (update)
@@ -109,76 +109,76 @@ void AuxCylinder::gradient(Cuda::Array<double>& X, const bool update)
 		grad.host_arr[fi + mesh_indices.startAx] += coeff_E2 * A.x; // Ax
 		grad.host_arr[fi + mesh_indices.startAy] += coeff_E2 * A.y; // Ay
 		grad.host_arr[fi + mesh_indices.startAz] += coeff_E2 * A.z; // Az
-		//grad.host_arr[fi + mesh_indices.startR] += -2 * R * (coeff_E3_V0 + coeff_E3_V1 + coeff_E3_V2); // R
+		grad.host_arr[fi + mesh_indices.startR] += -2 * R * (coeff_E3_V0 + coeff_E3_V1 + coeff_E3_V2); // R
 
-		//grad.host_arr[fi + mesh_indices.startAx] += (V0.y - C.y)* coeff_E3_squared_norm_V0_Z * coeff_E3_V0; //Ax
-		//grad.host_arr[fi + mesh_indices.startAx] += -(V0.z - C.z) * coeff_E3_squared_norm_V0_Y * coeff_E3_V0;
-		//grad.host_arr[fi + mesh_indices.startAx] += (V1.y - C.y)* coeff_E3_squared_norm_V1_Z* coeff_E3_V1; //Ax
-		//grad.host_arr[fi + mesh_indices.startAx] += -(V1.z - C.z) * coeff_E3_squared_norm_V1_Y * coeff_E3_V1;
-		//grad.host_arr[fi + mesh_indices.startAx] += (V2.y - C.y)* coeff_E3_squared_norm_V2_Z* coeff_E3_V2; //Ax
-		//grad.host_arr[fi + mesh_indices.startAx] += -(V2.z - C.z) * coeff_E3_squared_norm_V2_Y * coeff_E3_V2;
+		grad.host_arr[fi + mesh_indices.startAx] += (V0.y - C.y)* coeff_E3_squared_norm_V0_Z * coeff_E3_V0; //Ax
+		grad.host_arr[fi + mesh_indices.startAx] += -(V0.z - C.z) * coeff_E3_squared_norm_V0_Y * coeff_E3_V0;
+		grad.host_arr[fi + mesh_indices.startAx] += (V1.y - C.y)* coeff_E3_squared_norm_V1_Z* coeff_E3_V1; //Ax
+		grad.host_arr[fi + mesh_indices.startAx] += -(V1.z - C.z) * coeff_E3_squared_norm_V1_Y * coeff_E3_V1;
+		grad.host_arr[fi + mesh_indices.startAx] += (V2.y - C.y)* coeff_E3_squared_norm_V2_Z* coeff_E3_V2; //Ax
+		grad.host_arr[fi + mesh_indices.startAx] += -(V2.z - C.z) * coeff_E3_squared_norm_V2_Y * coeff_E3_V2;
 
-		//grad.host_arr[fi + mesh_indices.startAy] += (V0.z - C.z)* coeff_E3_squared_norm_V0_X* coeff_E3_V0; //Ay
-		//grad.host_arr[fi + mesh_indices.startAy] += -(V0.x - C.x) * coeff_E3_squared_norm_V0_Z * coeff_E3_V0;
-		//grad.host_arr[fi + mesh_indices.startAy] += (V1.z - C.z)* coeff_E3_squared_norm_V1_X* coeff_E3_V1; //Ay
-		//grad.host_arr[fi + mesh_indices.startAy] += -(V1.x - C.x) * coeff_E3_squared_norm_V1_Z * coeff_E3_V1;
-		//grad.host_arr[fi + mesh_indices.startAy] += (V2.z - C.z)* coeff_E3_squared_norm_V2_X* coeff_E3_V2; //Ay
-		//grad.host_arr[fi + mesh_indices.startAy] += -(V2.x - C.x) * coeff_E3_squared_norm_V2_Z * coeff_E3_V2;
+		grad.host_arr[fi + mesh_indices.startAy] += (V0.z - C.z)* coeff_E3_squared_norm_V0_X* coeff_E3_V0; //Ay
+		grad.host_arr[fi + mesh_indices.startAy] += -(V0.x - C.x) * coeff_E3_squared_norm_V0_Z * coeff_E3_V0;
+		grad.host_arr[fi + mesh_indices.startAy] += (V1.z - C.z)* coeff_E3_squared_norm_V1_X* coeff_E3_V1; //Ay
+		grad.host_arr[fi + mesh_indices.startAy] += -(V1.x - C.x) * coeff_E3_squared_norm_V1_Z * coeff_E3_V1;
+		grad.host_arr[fi + mesh_indices.startAy] += (V2.z - C.z)* coeff_E3_squared_norm_V2_X* coeff_E3_V2; //Ay
+		grad.host_arr[fi + mesh_indices.startAy] += -(V2.x - C.x) * coeff_E3_squared_norm_V2_Z * coeff_E3_V2;
 
-		//grad.host_arr[fi + mesh_indices.startAz] += (V0.x - C.x)* coeff_E3_squared_norm_V0_Y* coeff_E3_V0; //Az
-		//grad.host_arr[fi + mesh_indices.startAz] += -(V0.y - C.y) * coeff_E3_squared_norm_V0_X * coeff_E3_V0;
-		//grad.host_arr[fi + mesh_indices.startAz] += (V1.x - C.x)* coeff_E3_squared_norm_V1_Y* coeff_E3_V1; //Az
-		//grad.host_arr[fi + mesh_indices.startAz] += -(V1.y - C.y) * coeff_E3_squared_norm_V1_X * coeff_E3_V1;
-		//grad.host_arr[fi + mesh_indices.startAz] += (V2.x - C.x)* coeff_E3_squared_norm_V2_Y* coeff_E3_V2; //Az
-		//grad.host_arr[fi + mesh_indices.startAz] += -(V2.y - C.y) * coeff_E3_squared_norm_V2_X * coeff_E3_V2;
+		grad.host_arr[fi + mesh_indices.startAz] += (V0.x - C.x)* coeff_E3_squared_norm_V0_Y* coeff_E3_V0; //Az
+		grad.host_arr[fi + mesh_indices.startAz] += -(V0.y - C.y) * coeff_E3_squared_norm_V0_X * coeff_E3_V0;
+		grad.host_arr[fi + mesh_indices.startAz] += (V1.x - C.x)* coeff_E3_squared_norm_V1_Y* coeff_E3_V1; //Az
+		grad.host_arr[fi + mesh_indices.startAz] += -(V1.y - C.y) * coeff_E3_squared_norm_V1_X * coeff_E3_V1;
+		grad.host_arr[fi + mesh_indices.startAz] += (V2.x - C.x)* coeff_E3_squared_norm_V2_Y* coeff_E3_V2; //Az
+		grad.host_arr[fi + mesh_indices.startAz] += -(V2.y - C.y) * coeff_E3_squared_norm_V2_X * coeff_E3_V2;
 
-		//grad.host_arr[x0 + mesh_indices.startVx] += A.z * coeff_E3_squared_norm_V0_Y * coeff_E3_V0; // V0.x
-		//grad.host_arr[x0 + mesh_indices.startVx] += -A.y * coeff_E3_squared_norm_V0_Z * coeff_E3_V0;
+		grad.host_arr[x0 + mesh_indices.startVx] += A.z * coeff_E3_squared_norm_V0_Y * coeff_E3_V0; // V0.x
+		grad.host_arr[x0 + mesh_indices.startVx] += -A.y * coeff_E3_squared_norm_V0_Z * coeff_E3_V0;
 
-		//grad.host_arr[x0 + mesh_indices.startVy] += A.x* coeff_E3_squared_norm_V0_Z* coeff_E3_V0; // V0.y
-		//grad.host_arr[x0 + mesh_indices.startVy] += -A.z * coeff_E3_squared_norm_V0_X * coeff_E3_V0;
+		grad.host_arr[x0 + mesh_indices.startVy] += A.x* coeff_E3_squared_norm_V0_Z* coeff_E3_V0; // V0.y
+		grad.host_arr[x0 + mesh_indices.startVy] += -A.z * coeff_E3_squared_norm_V0_X * coeff_E3_V0;
 
-		//grad.host_arr[x0 + mesh_indices.startVz] += A.y* coeff_E3_squared_norm_V0_X* coeff_E3_V0; // V0.z
-		//grad.host_arr[x0 + mesh_indices.startVz] += -A.x * coeff_E3_squared_norm_V0_Y * coeff_E3_V0;
+		grad.host_arr[x0 + mesh_indices.startVz] += A.y* coeff_E3_squared_norm_V0_X* coeff_E3_V0; // V0.z
+		grad.host_arr[x0 + mesh_indices.startVz] += -A.x * coeff_E3_squared_norm_V0_Y * coeff_E3_V0;
 
-		//grad.host_arr[x1 + mesh_indices.startVx] += A.z* coeff_E3_squared_norm_V1_Y* coeff_E3_V1; // V1.x
-		//grad.host_arr[x1 + mesh_indices.startVx] += -A.y * coeff_E3_squared_norm_V1_Z * coeff_E3_V1;
+		grad.host_arr[x1 + mesh_indices.startVx] += A.z* coeff_E3_squared_norm_V1_Y* coeff_E3_V1; // V1.x
+		grad.host_arr[x1 + mesh_indices.startVx] += -A.y * coeff_E3_squared_norm_V1_Z * coeff_E3_V1;
 
-		//grad.host_arr[x1 + mesh_indices.startVy] += A.x* coeff_E3_squared_norm_V1_Z* coeff_E3_V1; // V1.y
-		//grad.host_arr[x1 + mesh_indices.startVy] += -A.z * coeff_E3_squared_norm_V1_X * coeff_E3_V1;
+		grad.host_arr[x1 + mesh_indices.startVy] += A.x* coeff_E3_squared_norm_V1_Z* coeff_E3_V1; // V1.y
+		grad.host_arr[x1 + mesh_indices.startVy] += -A.z * coeff_E3_squared_norm_V1_X * coeff_E3_V1;
 
-		//grad.host_arr[x1 + mesh_indices.startVz] += A.y* coeff_E3_squared_norm_V1_X* coeff_E3_V1; // V1.z
-		//grad.host_arr[x1 + mesh_indices.startVz] += -A.x * coeff_E3_squared_norm_V1_Y * coeff_E3_V1;
+		grad.host_arr[x1 + mesh_indices.startVz] += A.y* coeff_E3_squared_norm_V1_X* coeff_E3_V1; // V1.z
+		grad.host_arr[x1 + mesh_indices.startVz] += -A.x * coeff_E3_squared_norm_V1_Y * coeff_E3_V1;
 
-		//grad.host_arr[x2 + mesh_indices.startVx] += A.z* coeff_E3_squared_norm_V2_Y* coeff_E3_V2; // V2.x
-		//grad.host_arr[x2 + mesh_indices.startVx] += -A.y * coeff_E3_squared_norm_V2_Z * coeff_E3_V2;
+		grad.host_arr[x2 + mesh_indices.startVx] += A.z* coeff_E3_squared_norm_V2_Y* coeff_E3_V2; // V2.x
+		grad.host_arr[x2 + mesh_indices.startVx] += -A.y * coeff_E3_squared_norm_V2_Z * coeff_E3_V2;
 
-		//grad.host_arr[x2 + mesh_indices.startVy] += A.x* coeff_E3_squared_norm_V2_Z* coeff_E3_V2; // V2.y
-		//grad.host_arr[x2 + mesh_indices.startVy] += -A.z * coeff_E3_squared_norm_V2_X * coeff_E3_V2;
+		grad.host_arr[x2 + mesh_indices.startVy] += A.x* coeff_E3_squared_norm_V2_Z* coeff_E3_V2; // V2.y
+		grad.host_arr[x2 + mesh_indices.startVy] += -A.z * coeff_E3_squared_norm_V2_X * coeff_E3_V2;
 
-		//grad.host_arr[x2 + mesh_indices.startVz] += A.y* coeff_E3_squared_norm_V2_X* coeff_E3_V2; // V2.z
-		//grad.host_arr[x2 + mesh_indices.startVz] += -A.x * coeff_E3_squared_norm_V2_Y * coeff_E3_V2;
+		grad.host_arr[x2 + mesh_indices.startVz] += A.y* coeff_E3_squared_norm_V2_X* coeff_E3_V2; // V2.z
+		grad.host_arr[x2 + mesh_indices.startVz] += -A.x * coeff_E3_squared_norm_V2_Y * coeff_E3_V2;
 
-		//grad.host_arr[fi + mesh_indices.startCx] += -A.z* coeff_E3_squared_norm_V0_Y * coeff_E3_V0; // C.x
-		//grad.host_arr[fi + mesh_indices.startCx] += A.y * coeff_E3_squared_norm_V0_Z* coeff_E3_V0;
-		//grad.host_arr[fi + mesh_indices.startCx] += -A.z * coeff_E3_squared_norm_V1_Y * coeff_E3_V1; // C.x
-		//grad.host_arr[fi + mesh_indices.startCx] += A.y* coeff_E3_squared_norm_V1_Z* coeff_E3_V1;
-		//grad.host_arr[fi + mesh_indices.startCx] += -A.z * coeff_E3_squared_norm_V2_Y * coeff_E3_V2; // C.x
-		//grad.host_arr[fi + mesh_indices.startCx] += A.y* coeff_E3_squared_norm_V2_Z* coeff_E3_V2;
+		grad.host_arr[fi + mesh_indices.startCx] += -A.z* coeff_E3_squared_norm_V0_Y * coeff_E3_V0; // C.x
+		grad.host_arr[fi + mesh_indices.startCx] += A.y * coeff_E3_squared_norm_V0_Z* coeff_E3_V0;
+		grad.host_arr[fi + mesh_indices.startCx] += -A.z * coeff_E3_squared_norm_V1_Y * coeff_E3_V1; // C.x
+		grad.host_arr[fi + mesh_indices.startCx] += A.y* coeff_E3_squared_norm_V1_Z* coeff_E3_V1;
+		grad.host_arr[fi + mesh_indices.startCx] += -A.z * coeff_E3_squared_norm_V2_Y * coeff_E3_V2; // C.x
+		grad.host_arr[fi + mesh_indices.startCx] += A.y* coeff_E3_squared_norm_V2_Z* coeff_E3_V2;
 
-		//grad.host_arr[fi + mesh_indices.startCy] += -A.x* coeff_E3_squared_norm_V0_Z * coeff_E3_V0; // C.y
-		//grad.host_arr[fi + mesh_indices.startCy] += A.z * coeff_E3_squared_norm_V0_X* coeff_E3_V0;
-		//grad.host_arr[fi + mesh_indices.startCy] += -A.x * coeff_E3_squared_norm_V1_Z * coeff_E3_V1; // C.y
-		//grad.host_arr[fi + mesh_indices.startCy] += A.z* coeff_E3_squared_norm_V1_X* coeff_E3_V1;
-		//grad.host_arr[fi + mesh_indices.startCy] += -A.x * coeff_E3_squared_norm_V2_Z * coeff_E3_V2; // C.y
-		//grad.host_arr[fi + mesh_indices.startCy] += A.z* coeff_E3_squared_norm_V2_X* coeff_E3_V2;
+		grad.host_arr[fi + mesh_indices.startCy] += -A.x* coeff_E3_squared_norm_V0_Z * coeff_E3_V0; // C.y
+		grad.host_arr[fi + mesh_indices.startCy] += A.z * coeff_E3_squared_norm_V0_X* coeff_E3_V0;
+		grad.host_arr[fi + mesh_indices.startCy] += -A.x * coeff_E3_squared_norm_V1_Z * coeff_E3_V1; // C.y
+		grad.host_arr[fi + mesh_indices.startCy] += A.z* coeff_E3_squared_norm_V1_X* coeff_E3_V1;
+		grad.host_arr[fi + mesh_indices.startCy] += -A.x * coeff_E3_squared_norm_V2_Z * coeff_E3_V2; // C.y
+		grad.host_arr[fi + mesh_indices.startCy] += A.z* coeff_E3_squared_norm_V2_X* coeff_E3_V2;
 
-		//grad.host_arr[fi + mesh_indices.startCz] += -A.y* coeff_E3_squared_norm_V0_X * coeff_E3_V0; // C.z
-		//grad.host_arr[fi + mesh_indices.startCz] += A.x * coeff_E3_squared_norm_V0_Y* coeff_E3_V0;
-		//grad.host_arr[fi + mesh_indices.startCz] += -A.y * coeff_E3_squared_norm_V1_X * coeff_E3_V1; // C.z
-		//grad.host_arr[fi + mesh_indices.startCz] += A.x* coeff_E3_squared_norm_V1_Y* coeff_E3_V1;
-		//grad.host_arr[fi + mesh_indices.startCz] += -A.y * coeff_E3_squared_norm_V2_X * coeff_E3_V2; // C.z
-		//grad.host_arr[fi + mesh_indices.startCz] += A.x* coeff_E3_squared_norm_V2_Y* coeff_E3_V2;
+		grad.host_arr[fi + mesh_indices.startCz] += -A.y* coeff_E3_squared_norm_V0_X * coeff_E3_V0; // C.z
+		grad.host_arr[fi + mesh_indices.startCz] += A.x * coeff_E3_squared_norm_V0_Y* coeff_E3_V0;
+		grad.host_arr[fi + mesh_indices.startCz] += -A.y * coeff_E3_squared_norm_V1_X * coeff_E3_V1; // C.z
+		grad.host_arr[fi + mesh_indices.startCz] += A.x* coeff_E3_squared_norm_V1_Y* coeff_E3_V1;
+		grad.host_arr[fi + mesh_indices.startCz] += -A.y * coeff_E3_squared_norm_V2_X * coeff_E3_V2; // C.z
+		grad.host_arr[fi + mesh_indices.startCz] += A.x* coeff_E3_squared_norm_V2_Y* coeff_E3_V2;
 	}
 
 	if (update) {
