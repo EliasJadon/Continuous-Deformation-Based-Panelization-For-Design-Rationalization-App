@@ -117,8 +117,8 @@ void Basic::RunSymmetricDirichletGradient() {
 
 void Basic::update_lambda()
 {
-	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder0> AC1 =
-		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(totalObjective->objectiveList[0]);
+	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder1> AC1 =
+		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(totalObjective->objectiveList[0]);
 	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder2> AC2 =
 		std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(totalObjective->objectiveList[1]);
 	std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder3> AC3 =
@@ -260,7 +260,7 @@ void Basic::value_linesearch()
 		if (linesearch_numiterations >= MAX_STEP_SIZE_ITER) linesearch_StopCounter++;
 		else linesearch_StopCounter = 0;
 		if (linesearch_StopCounter >= 7) {
-			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder0> AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(totalObjective->objectiveList[0]);
+			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder1> AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(totalObjective->objectiveList[0]);
 			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder2> AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(totalObjective->objectiveList[1]);
 			std::shared_ptr<ObjectiveFunctions::Panels::AuxCylinder3> AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(totalObjective->objectiveList[2]);
 			std::shared_ptr<ObjectiveFunctions::Panels::AuxSphere> ASH = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(totalObjective->objectiveList[3]);

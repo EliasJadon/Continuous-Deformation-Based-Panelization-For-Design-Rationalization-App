@@ -731,7 +731,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 					auto SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(obj);
 					auto fR = std::dynamic_pointer_cast<ObjectiveFunctions::Fabrication::RoundRadiuses>(obj);
 
-					auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(obj);
+					auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(obj);
 					auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(obj);
 					auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(obj);
 					auto ABN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(obj);
@@ -1368,7 +1368,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
-			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(out.totalObjective->objectiveList[0]);
+			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
 			auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
 			auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
@@ -1392,7 +1392,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
-			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(out.totalObjective->objectiveList[0]);
+			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
 			auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
 			auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
 			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
@@ -1421,7 +1421,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		{
 			for (auto& obj : out.totalObjective->objectiveList) 
 			{
-				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(out.totalObjective->objectiveList[0]);
+				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
 				auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
 				auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
 				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
@@ -1451,7 +1451,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		{
 			for (auto& obj : out.totalObjective->objectiveList)
 			{
-				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder0>(out.totalObjective->objectiveList[0]);
+				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
 				auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
 				auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
 				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
@@ -1954,7 +1954,7 @@ void MeshSimplificationPlugin::init_objective_functions(const int index)
 	std::cout << Utils::ConsoleColor::yellow << "-------Energies, begin-------" << std::endl;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> auxPlanar = std::make_unique<ObjectiveFunctions::Panels::AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxPlanar = auxPlanar;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder0> auxCylinder1 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder0>(V, F, Cuda::PenaltyFunction::SIGMOID);
+	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder1> auxCylinder1 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder1>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxCylinder1 = auxCylinder1;
 	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder2> auxCylinder2 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder2>(V, F, Cuda::PenaltyFunction::SIGMOID);
 	Outputs[index].Energy_auxCylinder2 = auxCylinder2;
