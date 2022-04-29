@@ -1,4 +1,5 @@
 #include "GUIExtensions/MeshSimplificationData.h"
+#include "NumericalOptimizations/InitAuxVar.h"
 
 using namespace GUIExtensions;
 
@@ -173,7 +174,7 @@ void MeshSimplificationData::initMinimizers(
 	R.setConstant(minus_normals_radius_length);
 
 	if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::SPHERE_FIT)
-		OptimizationUtils::Least_Squares_Sphere_Fit(distance_from, distance_to, V, F, C, R);
+		NumericalOptimizations::InitAuxVar::general_sphere_fit(distance_from, distance_to, V, F, C, R);
 	else if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::MODEL_CENTER_POINT)
 		OptimizationUtils::center_of_mesh(V, F, C, R);
 	else if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS) {
