@@ -16,12 +16,25 @@
 
 namespace NumericalOptimizations {
 	namespace InitAuxVar {
-		void general_sphere_fit(
-			const int Distance_from,
-			const int Distance_to,
+
+		// A wrapper function which loop over all faces
+		// and find for each face the most suitable sphere
+		void sphere_fit_wrapper(
+			const int adjacency_level,
 			const Eigen::MatrixXd& V,
 			const Eigen::MatrixXi& F,
-			Eigen::MatrixXd& center0,
-			Eigen::VectorXd& radius0);
+			Eigen::MatrixXd& C,
+			Eigen::VectorXd& R);
+
+		// A wrapper function which loop over all faces
+		// and find for each face the most suitable sphere 
+		// which is aligned to normal
+		void sphere_fit_aligned_to_normal_wrapper(
+			const int adjacency_level,
+			const Eigen::MatrixXd& V,
+			const Eigen::MatrixXi& F,
+			Eigen::MatrixXd& C,
+			Eigen::VectorXd& R);
+
 	};
 };

@@ -1,4 +1,5 @@
 #include "NumericalOptimizations/InitAuxVar.h"
+#include <igl/per_face_normals.h>
 
 static std::vector<int> temp_get_one_ring_vertices_per_vertex(const Eigen::MatrixXi& F, const std::vector<int>& OneRingFaces) {
 	std::vector<int> vertices;
@@ -35,21 +36,21 @@ static std::vector<std::vector<int>> get_one_ring_vertices(const Eigen::MatrixXd
 	return OneRingVertices;
 }
 
-static Eigen::MatrixX3d Vertices_Neighbors(
+static Eigen::MatrixX3d get_adjacent_vertices_per_face(
 	const int fi,
-	const int distance,
+	const int adjacency_level,
 	const Eigen::MatrixXd& V,
 	const std::vector<std::set<int>>& TT,
 	const std::vector<std::vector<int>>& TV)
 {
 	std::set<int> faces;
-	if (distance < 1) {
-		std::cout << "Error! Distance should be 1 or Greater! (OptimizationUtils::Vertices_Neighbors)";
+	if (adjacency_level < 1) {
+		std::cout << "Error! adjacency_level should be 1 or Greater!";
 		exit(1);
 	}
 	else {
 		faces = { fi };
-		for (int i = 1; i < distance; i++) {
+		for (int i = 1; i < adjacency_level; i++) {
 			std::set<int> currfaces = faces;
 			for (int neighF : currfaces)
 				faces.insert(TT[neighF].begin(), TT[neighF].end());
@@ -87,37 +88,42 @@ static std::vector<std::set<int>> Triangle_triangle_adjacency(const Eigen::Matri
 	return neigh;
 }
 
-static double Least_Squares_Sphere_Fit_perFace(
-	const int fi,
-	const Eigen::MatrixXd& V,
-	const Eigen::MatrixXi& F,
-	const Eigen::MatrixX3d& vertices_indices,
-	Eigen::MatrixXd& center0,
-	Eigen::VectorXd& radius0)
-{
+static Eigen::RowVector4d sphere_fit(const Eigen::MatrixX3d& point_cloud) {
 	//for more info:
 	//https://jekel.me/2015/Least-Squares-Sphere-Fit/
-	const int n = vertices_indices.rows();
-	Eigen::MatrixXd A(n, 4);
-	Eigen::VectorXd c(4), f(n);
-	for (int ni = 0; ni < n; ni++) {
-		const double xi = vertices_indices(ni, 0);
-		const double yi = vertices_indices(ni, 1);
-		const double zi = vertices_indices(ni, 2);
+	
+	Eigen::MatrixXd A(point_cloud.rows(), 4);
+	Eigen::VectorXd c(4), f(point_cloud.rows());
+	for (int ni = 0; ni < point_cloud.rows(); ni++) {
+		const double xi = point_cloud(ni, 0);
+		const double yi = point_cloud(ni, 1);
+		const double zi = point_cloud(ni, 2);
 		A.row(ni) << 2 * xi, 2 * yi, 2 * zi, 1;
 		f(ni) = pow(xi, 2) + pow(yi, 2) + pow(zi, 2);
 	}
 	//solve Ac = f and get c!
 	c = (A.transpose() * A).colPivHouseholderQr().solve(A.transpose() * f);
-	//after we got the solution c we pick from c: radius & center=(X,Y,Z)
-	center0.row(fi) << c(0), c(1), c(2);
-	radius0(fi) = sqrt(c(3) + pow(c(0), 2) + pow(c(1), 2) + pow(c(2), 2));
-	//calculate MSE
-	double toatal_MSE = 0;
-	for (int ni = 0; ni < n; ni++)
-		toatal_MSE += pow((vertices_indices.row(ni) - center0.row(fi)).squaredNorm() - pow(radius0(fi), 2), 2);
-	toatal_MSE /= n;
-	return toatal_MSE;
+	return Eigen::RowVector4d(c(0), c(1), c(2), sqrt(c(3) + pow(c(0), 2) + pow(c(1), 2) + pow(c(2), 2)));
+}
+
+static Eigen::Vector4d sphere_fit_aligned_to_normal(
+	const Eigen::RowVector3d& face_center_point,
+	const Eigen::RowVector3d& face_normal,
+	const Eigen::MatrixX3d& point_cloud)
+{
+	Eigen::MatrixXd A(point_cloud.rows(), 1);
+	Eigen::VectorXd r(1), f(point_cloud.rows());
+	for (int pi = 0; pi < point_cloud.rows(); pi++) {
+		A(pi, 0) = (point_cloud.row(pi) - face_center_point).squaredNorm();
+		f(pi) = 2 * face_normal.dot(point_cloud.row(pi) - face_center_point);
+	}
+	//solve Ac = f and get c!
+	r = (A.transpose() * A).colPivHouseholderQr().solve(A.transpose() * f);
+	return Eigen::Vector4d(
+		face_center_point(0) + r(0) * face_normal(0),
+		face_center_point(1) + r(1) * face_normal(1),
+		face_center_point(2) + r(2) * face_normal(2),
+		r(0));
 }
 
 static std::vector<std::vector<int>> get_adjacency_vertices_per_face(const Eigen::MatrixXd& V, const Eigen::MatrixXi& F) {
@@ -138,36 +144,45 @@ static std::vector<std::vector<int>> get_adjacency_vertices_per_face(const Eigen
 }
 
 
-void NumericalOptimizations::InitAuxVar::general_sphere_fit(
-	const int Distance_from,
-	const int Distance_to,
-	const Eigen::MatrixXd& V,
+void NumericalOptimizations::InitAuxVar::sphere_fit_wrapper(
+	const int adjacency_level,
+	const Eigen::MatrixXd& V, 
 	const Eigen::MatrixXi& F,
-	Eigen::MatrixXd& center0,
-	Eigen::VectorXd& radius0)
+	Eigen::MatrixXd& C, 
+	Eigen::VectorXd& R)
 {
-	//for more info:
-	//https://jekel.me/2015/Least-Squares-Sphere-Fit/
-	center0.resize(F.rows(), 3);
-	radius0.resize(F.rows(), 1);
+	C.resize(F.rows(), 3);
+	R.resize(F.rows(), 1);
 	std::vector<std::vector<int>> TV = get_adjacency_vertices_per_face(V, F);
 	std::vector<std::set<int>> TT = Triangle_triangle_adjacency(F);
 
 	for (int fi = 0; fi < F.rows(); fi++) {
-		double minMSE = std::numeric_limits<double>::infinity();
-		int argmin = -1;
-		for (int d = Distance_from; d <= Distance_to; d++) {
-			double currMSE = Least_Squares_Sphere_Fit_perFace(fi, V, F,
-				Vertices_Neighbors(fi, d, V, TT, TV),
-				center0, radius0);
-			if (currMSE < minMSE) {
-				minMSE = currMSE;
-				argmin = d;
-			}
-		}
-		std::cout << "fi =\t" << fi << "\t, argmin = " << argmin << "\t, minMSE = " << minMSE << std::endl;
-		Least_Squares_Sphere_Fit_perFace(fi, V, F,
-			Vertices_Neighbors(fi, argmin, V, TT, TV),
-			center0, radius0);
+		Eigen::MatrixX3d point_cloud = get_adjacent_vertices_per_face(fi, adjacency_level, V, TT, TV);
+		Eigen::RowVector4d sphere = sphere_fit(point_cloud);
+		C.row(fi) << sphere(0), sphere(1), sphere(2);
+		R(fi) = sphere(3);
+	}
+}
+
+void NumericalOptimizations::InitAuxVar::sphere_fit_aligned_to_normal_wrapper(
+	const int adjacency_level,
+	const Eigen::MatrixXd& V,
+	const Eigen::MatrixXi& F,
+	Eigen::MatrixXd& C,
+	Eigen::VectorXd& R)
+{
+	C.resize(F.rows(), 3);
+	R.resize(F.rows(), 1);
+	std::vector<std::vector<int>> TV = get_adjacency_vertices_per_face(V, F);
+	std::vector<std::set<int>> TT = Triangle_triangle_adjacency(F);
+	Eigen::MatrixX3d N;
+	igl::per_face_normals(V, F, N);
+
+	for (int fi = 0; fi < F.rows(); fi++) {
+		Eigen::MatrixX3d point_cloud = get_adjacent_vertices_per_face(fi, adjacency_level, V, TT, TV);
+		Eigen::RowVector3d face_center_point = (V.row(F(fi, 0)) + V.row(F(fi, 1)) + V.row(F(fi, 2))) / 3;
+		Eigen::RowVector4d sphere = sphere_fit_aligned_to_normal(face_center_point, N.row(fi), point_cloud);
+		C.row(fi) << sphere(0), sphere(1), sphere(2);
+		R(fi) = sphere(3);
 	}
 }
