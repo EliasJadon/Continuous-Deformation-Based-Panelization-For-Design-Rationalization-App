@@ -132,7 +132,7 @@ void MeshSimplificationPlugin::CollapsingHeader_face_coloring()
 	if (ImGui::CollapsingHeader("Face coloring"))
 	{
 		CollapsingHeader_curr[1] = true;
-		ImGui::Combo("type", (int *)(&faceColoring_type), app_utils::build_color_energies_list(Outputs[0].totalObjective));
+		ImGui::Combo("type", (int *)(&faceColoring_type), app_utils::build_color_energies_list(Outputs[0].minimizer->totalObjective));
 		ImGui::PushItemWidth(80 * ((igl::opengl::glfw::imgui::ImGuiMenu*)widgets.front())->menu_scaling());
 		ImGui::DragFloat("Max Distortion", &Max_Distortion, 0.05f, 0.01f, 10000.0f);
 		ImGui::PopItemWidth();
@@ -219,7 +219,7 @@ void MeshSimplificationPlugin::CollapsingHeader_measures() {
 				for (int oi = 0; oi < Outputs.size(); oi++) {
 					const Eigen::MatrixXd V = OutputModel(oi).V;
 					const Eigen::MatrixXi F = OutputModel(oi).F;
-					auto& AS = Outputs[oi].Energy_auxSphere;
+					auto& AS = Outputs[oi].minimizer->totalObjective->aux_sphere;
 					Outputs[oi].flippedFaces_pairs = app_utils::getFlippedFaces(V, F, AS->hinges_faceIndex, flippedFaces_epsilon);
 				}
 			}
@@ -691,7 +691,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 	ImGui::Text("");
 	
 	if (Outputs.size() != 0) {
-		if (ImGui::BeginTable("Unconstrained weights table", Outputs[0].totalObjective->objectiveList.size() + 3, ImGuiTableFlags_Resizable))
+		if (ImGui::BeginTable("Unconstrained weights table", Outputs[0].minimizer->totalObjective->objectiveList.size() + 3, ImGuiTableFlags_Resizable))
 		{
 			ImGui::Separator();
 			ImGui::TableNextRow();
@@ -699,7 +699,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 			ImGui::Text("ID");
 			ImGui::TableNextColumn();
 			ImGui::Text("Run");
-			for (auto& obj : Outputs[0].totalObjective->objectiveList) {
+			for (auto& obj : Outputs[0].minimizer->totalObjective->objectiveList) {
 				ImGui::TableNextColumn();
 				ImGui::Text(obj->name.c_str());
 			}
@@ -725,7 +725,7 @@ void MeshSimplificationPlugin::Draw_energies_window()
 				ImGui::PopID();
 				ImGui::TableNextColumn();
 				ImGui::PushItemWidth(80);
-				for (auto& obj : Outputs[i].totalObjective->objectiveList) {
+				for (auto& obj : Outputs[i].minimizer->totalObjective->objectiveList) {
 					ImGui::PushID(id++);
 					ImGui::DragFloat("##w", &(obj->w), 0.05f, 0.0f, 100000.0f);
 					auto SD = std::dynamic_pointer_cast<ObjectiveFunctions::Deformation::SymmetricDirichlet>(obj);
@@ -956,13 +956,13 @@ void MeshSimplificationPlugin::Draw_results_window()
 			std::string("\tNum Vertices: ") +
 			std::to_string(InputModel().V.rows()) +
 			std::string("\nGrad Size: ") +
-			std::to_string(out.totalObjective->objectiveList[0]->grad.size) +
+			std::to_string(out.minimizer->mesh_indices.total_variables) +
 			std::string("\tNum Clusters: ") +
 			std::to_string(out.clustering_faces_indices.size())
 			).c_str());
-		ImGui::TextColored(c, (std::string(out.totalObjective->name) + std::string(" energy ") + std::to_string(out.totalObjective->energy_value)).c_str());
-		ImGui::TextColored(c, (std::string(out.totalObjective->name) + std::string(" gradient ") + std::to_string(out.totalObjective->gradient_norm)).c_str());
-		for (auto& obj : out.totalObjective->objectiveList) {
+		ImGui::TextColored(c, (std::string(out.minimizer->totalObjective->name) + std::string(" energy ") + std::to_string(out.minimizer->totalObjective->energy_value)).c_str());
+		ImGui::TextColored(c, (std::string(out.minimizer->totalObjective->name) + std::string(" gradient ") + std::to_string(out.minimizer->totalObjective->gradient_norm)).c_str());
+		for (auto& obj : out.minimizer->totalObjective->objectiveList) {
 			if (obj->w)
 			{
 				ImGui::TextColored(c, (std::string(obj->name) + std::string(" energy ") + std::to_string(obj->energy_value)).c_str());
@@ -977,13 +977,13 @@ void MeshSimplificationPlugin::Draw_results_window()
 void MeshSimplificationPlugin::clear_sellected_faces_and_vertices() 
 {
 	for (auto& o : Outputs) {
-		o.Energy_auxSphere->Clear_HingesWeights();
-		o.Energy_auxCylinder1->Clear_HingesWeights();
-		o.Energy_auxCylinder1->Clear_HingesWeights();
-		o.Energy_auxCylinder2->Clear_HingesWeights();
-		o.Energy_auxPlanar->Clear_HingesWeights();
-		o.Energy_Planar->Clear_HingesWeights();
-		o.Energy_PinChosenVertices->clearConstraints();
+		o.minimizer->totalObjective->aux_sphere->Clear_HingesWeights();
+		o.minimizer->totalObjective->aux_cylinder1->Clear_HingesWeights();
+		o.minimizer->totalObjective->aux_cylinder2->Clear_HingesWeights();
+		o.minimizer->totalObjective->aux_cylinder3->Clear_HingesWeights();
+		o.minimizer->totalObjective->aux_planar->Clear_HingesWeights();
+		o.minimizer->totalObjective->planar->Clear_HingesWeights();
+		o.minimizer->totalObjective->pin_chosen_vertices->clearConstraints();
 	}
 }
 
@@ -1077,7 +1077,11 @@ void MeshSimplificationPlugin::add_output()
 		Eigen::Vector3d(51.0 / 255.0, 43.0 / 255.0, 33.3 / 255.0),
 		Eigen::Vector3d(255.0 / 255.0, 228.0 / 255.0, 58.0 / 255.0),
 		Eigen::Vector3d(255.0 / 255.0, 235.0 / 255.0, 80.0 / 255.0));
-	init_objective_functions(index);
+	
+	Outputs[index].minimizer = std::make_shared<NumericalOptimizations::Basic>
+		(Outputs[index].CoreID, original_V, original_F, linesearch_type, optimizer_type);
+	init_aux_variables();
+
 	update_core_settings(original_V, original_F);
 	int frameBufferWidth, frameBufferHeight;
 	glfwGetFramebufferSize(viewer->window, &frameBufferWidth, &frameBufferHeight);
@@ -1156,7 +1160,7 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 		Eigen::RowVector3d vertex_pos = OutputModel(ui.Output_Index).V.row(ui.Vertex_Index);
 		Eigen::RowVector3d translation = app_utils::computeTranslation(mouse_x, ui.down_mouse_x, mouse_y, ui.down_mouse_y, vertex_pos, OutputCore(ui.Output_Index));
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index))
-			out.first.Energy_PinChosenVertices->translateConstraint(ui.Vertex_Index, translation);
+			out.first.minimizer->totalObjective->pin_chosen_vertices->translateConstraint(ui.Vertex_Index, translation);
 		ui.down_mouse_x = mouse_x;
 		ui.down_mouse_y = mouse_y;
 		return true;
@@ -1165,22 +1169,24 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 		double shift = (ui.ADD_DELETE == ADD) ? ADDING_WEIGHT_PER_HINGE_VALUE : -ADDING_WEIGHT_PER_HINGE_VALUE;
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxCylinder1->Incr_HingesWeights(brush_faces, shift);
-			out.first.Energy_auxCylinder2->Incr_HingesWeights(brush_faces, shift);
-			out.first.Energy_auxPlanar->Incr_HingesWeights(brush_faces, shift);
-			out.first.Energy_Planar->Incr_HingesWeights(brush_faces, shift);
-			out.first.Energy_auxSphere->Incr_HingesWeights(brush_faces, shift);
+			out.first.minimizer->totalObjective->aux_cylinder1->Incr_HingesWeights(brush_faces, shift);
+			out.first.minimizer->totalObjective->aux_cylinder2->Incr_HingesWeights(brush_faces, shift);
+			out.first.minimizer->totalObjective->aux_cylinder3->Incr_HingesWeights(brush_faces, shift);
+			out.first.minimizer->totalObjective->aux_planar->Incr_HingesWeights(brush_faces, shift);
+			out.first.minimizer->totalObjective->planar->Incr_HingesWeights(brush_faces, shift);
+			out.first.minimizer->totalObjective->aux_sphere->Incr_HingesWeights(brush_faces, shift);
 		}
 		return true;
 	}
 	if (ui.isBrushingWeightDec() && pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxCylinder1->setOne_HingesWeights(brush_faces);
-			out.first.Energy_auxCylinder2->setOne_HingesWeights(brush_faces);
-			out.first.Energy_auxPlanar->setOne_HingesWeights(brush_faces);
-			out.first.Energy_Planar->setOne_HingesWeights(brush_faces);
-			out.first.Energy_auxSphere->setOne_HingesWeights(brush_faces);
+			out.first.minimizer->totalObjective->aux_cylinder1->setOne_HingesWeights(brush_faces);
+			out.first.minimizer->totalObjective->aux_cylinder2->setOne_HingesWeights(brush_faces);
+			out.first.minimizer->totalObjective->aux_cylinder3->setOne_HingesWeights(brush_faces);
+			out.first.minimizer->totalObjective->aux_planar->setOne_HingesWeights(brush_faces);
+			out.first.minimizer->totalObjective->planar->setOne_HingesWeights(brush_faces);
+			out.first.minimizer->totalObjective->aux_sphere->setOne_HingesWeights(brush_faces);
 		}
 		return true;
 	}
@@ -1234,11 +1240,12 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier)
 	if (ui.isUsingDFS() && pick_vertex(output_index, vertex_index)) {
 		ui.updateVerticesListOfDFS(InputModel().F, InputModel().V.rows(), vertex_index);
 		for (auto& out : listOfOutputsToUpdate(output_index)) {
-			out.first.Energy_auxCylinder1->setZero_HingesWeights(ui.DFS_vertices_list);
-			out.first.Energy_auxCylinder2->setZero_HingesWeights(ui.DFS_vertices_list);
-			out.first.Energy_auxPlanar->setZero_HingesWeights(ui.DFS_vertices_list);
-			out.first.Energy_Planar->setZero_HingesWeights(ui.DFS_vertices_list);
-			out.first.Energy_auxSphere->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.minimizer->totalObjective->aux_cylinder1->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.minimizer->totalObjective->aux_cylinder2->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.minimizer->totalObjective->aux_cylinder3->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.minimizer->totalObjective->aux_planar->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.minimizer->totalObjective->planar->setZero_HingesWeights(ui.DFS_vertices_list);
+			out.first.minimizer->totalObjective->aux_sphere->setZero_HingesWeights(ui.DFS_vertices_list);
 		}
 	}
 
@@ -1246,11 +1253,12 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_up(int button, int modifier)
 		std::vector<int> neigh_faces = Outputs[ui.Output_Index].getNeigh(neighbor_Type, InputModel().F, ui.Face_index, neighbor_distance);
 		double shift = (ui.ADD_DELETE == ADD) ? 5 * ADDING_WEIGHT_PER_HINGE_VALUE : -5 * ADDING_WEIGHT_PER_HINGE_VALUE;
 		for (auto& out : listOfOutputsToUpdate(ui.Output_Index)) {
-			out.first.Energy_auxCylinder1->Incr_HingesWeights(neigh_faces, shift);
-			out.first.Energy_auxCylinder2->Incr_HingesWeights(neigh_faces, shift);
-			out.first.Energy_auxPlanar->Incr_HingesWeights(neigh_faces, shift);
-			out.first.Energy_Planar->Incr_HingesWeights(neigh_faces, shift);
-			out.first.Energy_auxSphere->Incr_HingesWeights(neigh_faces, shift);
+			out.first.minimizer->totalObjective->aux_cylinder1->Incr_HingesWeights(neigh_faces, shift);
+			out.first.minimizer->totalObjective->aux_cylinder2->Incr_HingesWeights(neigh_faces, shift);
+			out.first.minimizer->totalObjective->aux_cylinder3->Incr_HingesWeights(neigh_faces, shift);
+			out.first.minimizer->totalObjective->aux_planar->Incr_HingesWeights(neigh_faces, shift);
+			out.first.minimizer->totalObjective->planar->Incr_HingesWeights(neigh_faces, shift);
+			out.first.minimizer->totalObjective->aux_sphere->Incr_HingesWeights(neigh_faces, shift);
 		}
 	}
 	ui.clear();
@@ -1276,14 +1284,14 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_down(int button, int modifier)
 	{
 		if (pick_vertex(ui.Output_Index, ui.Vertex_Index) && ui.Output_Index != INPUT_MODEL_SCREEN) {
 			for (auto& out : listOfOutputsToUpdate(ui.Output_Index))
-				out.first.Energy_PinChosenVertices->insertConstraint(ui.Vertex_Index, OutputModel(out.second).V);
+				out.first.minimizer->totalObjective->pin_chosen_vertices->insertConstraint(ui.Vertex_Index, OutputModel(out.second).V);
 			ui.isActive = true;
 		}
 	}
 	if (ui.status == app_utils::UserInterfaceOptions::FIX_VERTICES && RightClick) {
 		if (pick_vertex(ui.Output_Index, ui.Vertex_Index) && ui.Output_Index != INPUT_MODEL_SCREEN)
 			for (auto& out : listOfOutputsToUpdate(ui.Output_Index))
-				out.first.Energy_PinChosenVertices->eraseConstraint(ui.Vertex_Index);
+				out.first.minimizer->totalObjective->pin_chosen_vertices->eraseConstraint(ui.Vertex_Index);
 		ui.clear();
 	}
 	if (ui.status == app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_INCR && LeftClick) {
@@ -1368,18 +1376,12 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
-			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
-			auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
-			auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
-			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
-			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[4] );
-			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[5]);
-			AP->w = 0;
-			AC1->w = 0;
-			AC2->w = 0;
-			AC3->w = 0;
-			BN->w = 1.6;
-			AS->w = 0;
+			out.minimizer->totalObjective->aux_cylinder1->w = 0;
+			out.minimizer->totalObjective->aux_cylinder2->w = 0;
+			out.minimizer->totalObjective->aux_cylinder3->w = 0;
+			out.minimizer->totalObjective->aux_planar->w = 0;
+			out.minimizer->totalObjective->aux_sphere->w = 0;
+			out.minimizer->totalObjective->planar->w = 1.6;
 		}
 	}
 	if ((key == 'e' || key == 'E') && modifiers == 1)
@@ -1392,18 +1394,12 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 				out.showTriangleCenters = out.showSphereCenters = false;
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs) {
-			auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
-			auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
-			auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
-			auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
-			auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[4]);
-			auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[5]);
-			AP->w = 1.6;
-			AC1->w = 0;
-			AC2->w = 0;
-			AC3->w = 0;
-			BN->w = 0;
-			AS->w = 0;
+			out.minimizer->totalObjective->aux_cylinder1->w = 0;
+			out.minimizer->totalObjective->aux_cylinder2->w = 0;
+			out.minimizer->totalObjective->aux_cylinder3->w = 0;
+			out.minimizer->totalObjective->aux_planar->w = 1.6;
+			out.minimizer->totalObjective->aux_sphere->w = 0;
+			out.minimizer->totalObjective->planar->w = 0;
 		}
 	}
 	if ((key == 'w' || key == 'W') && modifiers == 1) 
@@ -1419,21 +1415,12 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs)
 		{
-			for (auto& obj : out.totalObjective->objectiveList) 
-			{
-				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
-				auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
-				auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
-				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
-				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[4]);
-				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[5]);
-				AC1->w = 0;
-				AC2->w = 0;
-				AC3->w = 0;
-				AP->w = 0;
-				BN->w = 0;
-				AS->w = 1.6;
-			}
+			out.minimizer->totalObjective->aux_cylinder1->w = 0;
+			out.minimizer->totalObjective->aux_cylinder2->w = 0;
+			out.minimizer->totalObjective->aux_cylinder3->w = 0;
+			out.minimizer->totalObjective->aux_planar->w = 0;
+			out.minimizer->totalObjective->aux_sphere->w = 1.6;
+			out.minimizer->totalObjective->planar->w = 0;
 		}
 	}
 	if ((key == 'r' || key == 'R') && modifiers == 1)
@@ -1449,21 +1436,12 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		}
 		for (GUIExtensions::MeshSimplificationData& out : Outputs)
 		{
-			for (auto& obj : out.totalObjective->objectiveList)
-			{
-				auto AC1 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder1>(out.totalObjective->objectiveList[0]);
-				auto AC2 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder2>(out.totalObjective->objectiveList[1]);
-				auto AC3 = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxCylinder3>(out.totalObjective->objectiveList[2]);
-				auto AS = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxSphere>(out.totalObjective->objectiveList[3]);
-				auto AP = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::AuxPlanar>(out.totalObjective->objectiveList[4]);
-				auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(out.totalObjective->objectiveList[5]);
-				AC1->w = 0;
-				AC2->w = 0;
-				AC3->w = 1.6;
-				AP->w = 0;
-				BN->w = 0;
-				AS->w = 0;
-			}
+			out.minimizer->totalObjective->aux_cylinder1->w = 0;
+			out.minimizer->totalObjective->aux_cylinder2->w = 0;
+			out.minimizer->totalObjective->aux_cylinder3->w = 1.6;
+			out.minimizer->totalObjective->aux_planar->w = 0;
+			out.minimizer->totalObjective->aux_sphere->w = 0;
+			out.minimizer->totalObjective->planar->w = 0;
 		}
 	}
 	
@@ -1538,14 +1516,14 @@ IGL_INLINE bool MeshSimplificationPlugin::pre_draw()
 	for (int oi = 0; oi < Outputs.size(); oi++) {
 		auto& m = OutputModel(oi);
 		auto& o = Outputs[oi];
-		auto& AS = Outputs[oi].Energy_auxSphere;
+		auto& AS = Outputs[oi].minimizer->totalObjective->aux_sphere;
 		m.point_size = 10;
 		m.clear_points();
 		m.clear_edges();
 
 		if (ui.isTranslatingVertex())
 			m.add_points(m.V.row(ui.Vertex_Index), Dragged_vertex_color.cast<double>().transpose());
-		for (auto vi : o.Energy_PinChosenVertices->getConstraintsIndices())
+		for (auto vi : o.minimizer->totalObjective->pin_chosen_vertices->getConstraintsIndices())
 			m.add_points(m.V.row(vi), Fixed_vertex_color.cast<double>().transpose());
 		if (o.showFacesNorm)
 			m.add_points(o.center_of_faces + o.N, o.color_per_face_norm);
@@ -1642,7 +1620,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 
 		UpdateEnergyColors(i);
 		//Mark the selected faces by brush
-		auto& AS = Outputs[i].Energy_auxSphere;
+		auto& AS = Outputs[i].minimizer->totalObjective->aux_sphere;
 		for (int hi = 0; hi < AS->mesh_indices.num_hinges; hi++) {
 			const int f0 = AS->hinges_faceIndex[hi][0];
 			const int f1 = AS->hinges_faceIndex[hi][1];
@@ -1701,7 +1679,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 				o.setFaceColors(fi, o.clustering_faces_colors.row(fi).transpose());
 		}
 		else if (face_coloring_Type == app_utils::Face_Colors::SIGMOID_PARAMETER) {
-			auto& AS = o.Energy_auxSphere;
+			auto& AS = o.minimizer->totalObjective->aux_sphere;
 			for (int hi = 0; hi < AS->mesh_indices.num_hinges; hi++) {
 				const int f0 = AS->hinges_faceIndex[hi][0];
 				const int f1 = AS->hinges_faceIndex[hi][1]; 
@@ -1862,8 +1840,8 @@ void MeshSimplificationPlugin::checkGradients()
 	for (auto& o: Outputs) 
 	{
 		Eigen::VectorXd testX = Eigen::VectorXd::Random(o.minimizer->mesh_indices.total_variables);
-		o.totalObjective->checkGradient(testX);
-		for (auto const &objective : o.totalObjective->objectiveList)
+		o.minimizer->totalObjective->checkGradient(testX);
+		for (auto const &objective : o.minimizer->totalObjective->objectiveList)
 			objective->checkGradient(testX);
 	}
 }
@@ -1879,8 +1857,7 @@ void MeshSimplificationPlugin::update_data_from_minimizer()
 
 		Eigen::MatrixX3d N;
 		igl::per_face_normals(V, OutputModel(i).F, N);
-		auto BN = std::dynamic_pointer_cast<ObjectiveFunctions::Panels::Planar>(Outputs[i].totalObjective->objectiveList[5]);
-		if (BN->w != 0) {
+		if (Outputs[i].minimizer->totalObjective->planar->w != 0) {
 			o.N = N;
 		}
 		
@@ -1939,64 +1916,6 @@ void MeshSimplificationPlugin::run_one_minimizer_iter()
 		o.minimizer->run_one_iteration();
 }
 
-void MeshSimplificationPlugin::init_objective_functions(const int index)
-{
-	Eigen::MatrixXd V = OutputModel(index).V;
-	Eigen::MatrixX3i F = OutputModel(index).F;
-	if (V.rows() == 0 || F.rows() == 0)
-		return;
-
-	Outputs[index].minimizer = std::make_shared<NumericalOptimizations::Basic>(Outputs[index].CoreID);
-	Outputs[index].minimizer->lineSearch_type = linesearch_type;
-	Outputs[index].minimizer->Optimizer_type = optimizer_type;
-
-	// initialize the energy
-	std::cout << Utils::ConsoleColor::yellow << "-------Energies, begin-------" << std::endl;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> auxPlanar = std::make_unique<ObjectiveFunctions::Panels::AuxPlanar>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxPlanar = auxPlanar;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder1> auxCylinder1 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder1>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxCylinder1 = auxCylinder1;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder2> auxCylinder2 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder2>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxCylinder2 = auxCylinder2;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder3> auxCylinder3 = std::make_unique<ObjectiveFunctions::Panels::AuxCylinder3>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxCylinder3 = auxCylinder3;
-	std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> auxSphere = std::make_unique<ObjectiveFunctions::Panels::AuxSphere>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_auxSphere = auxSphere;
-	std::shared_ptr <ObjectiveFunctions::Deformation::STVK> stvk = std::make_unique<ObjectiveFunctions::Deformation::STVK>(V, F);
-	std::shared_ptr <ObjectiveFunctions::Deformation::SymmetricDirichlet> sdenergy = std::make_unique<ObjectiveFunctions::Deformation::SymmetricDirichlet>(V, F);
-	std::shared_ptr <ObjectiveFunctions::Deformation::PinVertices> fixAllVertices = std::make_unique<ObjectiveFunctions::Deformation::PinVertices>(V, F);
-	std::shared_ptr <ObjectiveFunctions::Fabrication::RoundRadiuses> FixRadius = std::make_unique<ObjectiveFunctions::Fabrication::RoundRadiuses>(V, F);
-	std::shared_ptr <ObjectiveFunctions::Deformation::UniformSmoothness> uniformSmoothness = std::make_unique<ObjectiveFunctions::Deformation::UniformSmoothness>(V, F);
-	std::shared_ptr <ObjectiveFunctions::Panels::Planar> planar = std::make_unique<ObjectiveFunctions::Panels::Planar>(V, F, Cuda::PenaltyFunction::SIGMOID);
-	Outputs[index].Energy_Planar = planar;
-
-	//Add User Interface Energies
-	auto pinChosenVertices = std::make_shared<ObjectiveFunctions::Deformation::PinChosenVertices>(V, F);
-	Outputs[index].Energy_PinChosenVertices = pinChosenVertices;
-
-	//init total objective
-	Outputs[index].totalObjective = std::make_shared<ObjectiveFunctions::Total>(V, F);
-	Outputs[index].totalObjective->objectiveList.clear();
-	auto add_obj = [&](std::shared_ptr< ObjectiveFunctions::Basic> obj)
-	{
-		Outputs[index].totalObjective->objectiveList.push_back(move(obj));
-	};
-	add_obj(auxCylinder1);
-	add_obj(auxCylinder2);
-	add_obj(auxCylinder3);
-	add_obj(auxSphere);
-	add_obj(auxPlanar);
-	add_obj(planar);
-	add_obj(stvk);
-	add_obj(sdenergy);
-	add_obj(fixAllVertices);
-	add_obj(pinChosenVertices);
-	add_obj(FixRadius);
-	add_obj(uniformSmoothness);
-	std::cout  << "-------Energies, end-------" << Utils::ConsoleColor::white << std::endl;
-	init_aux_variables();
-}
-
 void MeshSimplificationPlugin::UpdateEnergyColors(const int index) 
 {
 	int numF = OutputModel(index).F.rows();
@@ -2006,14 +1925,14 @@ void MeshSimplificationPlugin::UpdateEnergyColors(const int index)
 		DistortionPerFace.setZero();
 	}
 	else if (faceColoring_type == 1) { // total energy
-		for (auto& obj: Outputs[index].totalObjective->objectiveList) {
+		for (auto& obj: Outputs[index].minimizer->totalObjective->objectiveList) {
 			// calculate the distortion over all the energies
 			if ((obj->Efi.size() != 0) && (obj->w != 0))
 				DistortionPerFace += obj->Efi * obj->w;
 		}
 	}
 	else {
-		auto& obj = Outputs[index].totalObjective->objectiveList[faceColoring_type - 2];
+		auto& obj = Outputs[index].minimizer->totalObjective->objectiveList[faceColoring_type - 2];
 		if ((obj->Efi.size() != 0) && (obj->w != 0))
 			DistortionPerFace = obj->Efi * obj->w;
 	}

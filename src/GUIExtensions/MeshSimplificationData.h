@@ -6,20 +6,13 @@ namespace GUIExtensions {
 	public:
 		Eigen::MatrixXd center_of_faces, C, N, A;
 		Eigen::VectorXd R;
+		std::shared_ptr<NumericalOptimizations::Basic> minimizer;
 
 		Clustering_Colors clustering_colors;
 		std::vector<std::vector<int>> clustering_faces_indices;
 		std::vector<std::pair<int, int>> SelfIntersection_pairs, flippedFaces_pairs;
 		Eigen::MatrixX3d clustering_faces_colors;
-		std::shared_ptr <ObjectiveFunctions::Panels::AuxSphere> Energy_auxSphere;
-		std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder1> Energy_auxCylinder1;
-		std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder2> Energy_auxCylinder2;
-		std::shared_ptr <ObjectiveFunctions::Panels::AuxCylinder3> Energy_auxCylinder3;
-		std::shared_ptr <ObjectiveFunctions::Panels::AuxPlanar> Energy_auxPlanar;
-		std::shared_ptr <ObjectiveFunctions::Panels::Planar> Energy_Planar;
-		std::shared_ptr <ObjectiveFunctions::Deformation::PinChosenVertices> Energy_PinChosenVertices;
-		std::shared_ptr<NumericalOptimizations::Basic> minimizer;
-		std::shared_ptr<ObjectiveFunctions::Total> totalObjective;
+		
 		float prev_camera_zoom;
 		Eigen::Vector3f prev_camera_translation;
 		Eigen::Quaternionf prev_trackball_angle;

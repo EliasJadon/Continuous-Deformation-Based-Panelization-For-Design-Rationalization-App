@@ -11,8 +11,12 @@ namespace NumericalOptimizations {
 	{
 	public:
 		Cuda::Array<double> X, p, curr_x, v_adam, s_adam;
-
-		Basic(const int solverID);
+		Basic(
+			const int solverID,
+			const Eigen::MatrixXd& V,
+			const Eigen::MatrixXi& F,
+			const OptimizationUtils::LineSearch linesearch_type,
+			const Cuda::OptimizerType optimizer_type);
 		void run();
 		void run_new();
 		void RunSymmetricDirichletGradient();
@@ -27,9 +31,7 @@ namespace NumericalOptimizations {
 			Eigen::MatrixXd& norm,
 			Eigen::MatrixXd& cylinder_dir);
 		void init(
-			std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
 			const Eigen::MatrixXd& V0,
-			const Eigen::MatrixXi& F0,
 			const Eigen::MatrixXd& norm0,
 			const Eigen::MatrixXd& center0,
 			const Eigen::MatrixXd& radius0,

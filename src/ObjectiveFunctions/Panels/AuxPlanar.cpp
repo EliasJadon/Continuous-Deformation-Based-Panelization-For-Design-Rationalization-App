@@ -63,7 +63,7 @@ void AuxPlanar::gradient(Cuda::Array<double>& X, const bool update)
 		int f0 = hinges_faceIndex[hi][0];
 		int f1 = hinges_faceIndex[hi][1];
 		double_3 N0 = getN(X, f0); 
-		double_3 N1 = getN(X, f1); 
+		double_3 N1 = getN(X, f1);
 		double_3 diff = sub(N1, N0);
 		double d_normals = squared_norm(diff);
 

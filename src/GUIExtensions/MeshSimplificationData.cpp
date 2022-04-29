@@ -181,7 +181,7 @@ void MeshSimplificationData::initMinimizers(
 			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
 	}
 	
-	minimizer->init(totalObjective, V, F, N, C, R, A);
+	minimizer->init(V, N, C, R, A);
 }
 
 Eigen::MatrixX4d MeshSimplificationData::getValues(const app_utils::Face_Colors face_coloring_Type) {

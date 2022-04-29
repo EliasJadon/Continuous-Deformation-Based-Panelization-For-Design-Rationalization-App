@@ -30,11 +30,8 @@ namespace GUIExtensions {
 			if (ImGui::Button("save sphere", ImVec2((w - p) / 2.f, 0)) && dp->Outputs[dp->ActiveOutput].clustering_faces_indices.size()) {
 				// multiply all the mesh by "factor". relevant only for spheres. 
 				double factor = 1;
-				for (auto& obj : dp->Outputs[dp->ActiveOutput].totalObjective->objectiveList) {
-					auto fr = std::dynamic_pointer_cast<ObjectiveFunctions::Fabrication::RoundRadiuses>(obj);
-					if (fr != NULL && fr->w != 0)
-						factor = fr->alpha;
-				}
+				if (dp->Outputs[dp->ActiveOutput].minimizer->totalObjective->round_radiuses->w != 0)
+					factor = dp->Outputs[dp->ActiveOutput].minimizer->totalObjective->round_radiuses->alpha;
 				// get mesh data
 				GUIExtensions::MeshSimplificationData o = dp->Outputs[dp->ActiveOutput];
 				Eigen::MatrixX3d colors = o.clustering_faces_colors;

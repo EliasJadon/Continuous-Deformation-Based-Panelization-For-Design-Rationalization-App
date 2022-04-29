@@ -120,7 +120,6 @@ namespace GUIExtensions {
 		void update_data_from_minimizer();
 
 		//Start/Stop the minimizer Thread
-		void init_objective_functions(const int index);
 		void stop_all_minimizers_threads();
 		void stop_one_minimizer_thread(const GUIExtensions::MeshSimplificationData o);
 		void start_all_minimizers_threads();

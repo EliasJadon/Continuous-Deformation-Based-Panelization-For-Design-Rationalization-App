@@ -15,40 +15,44 @@
 using namespace NumericalOptimizations;
 
 
-Basic::Basic(const int solverID){
+Basic::Basic(
+	const int solverID, 
+	const Eigen::MatrixXd& V,
+	const Eigen::MatrixXi& F,
+	const OptimizationUtils::LineSearch linesearch_type,
+	const Cuda::OptimizerType optimizer_type)
+{
+	assert(V.rows() >= 3 && V.cols() == 3);
+	assert(F.rows() >= 1 && F.cols() == 3);
+
 	this->solverID = solverID;
 	this->constantStep_LineSearch = 0.01;
-}
+	this->lineSearch_type = linesearch_type;
+	this->Optimizer_type = optimizer_type;
+	this->totalObjective = std::make_shared<ObjectiveFunctions::Total>(V, F);
 
-void Basic::init(
-	std::shared_ptr<ObjectiveFunctions::Total> Tobjective,
-	const Eigen::MatrixXd& V0,
-	const Eigen::MatrixXi& F0,
-	const Eigen::MatrixXd& norm0,
-	const Eigen::MatrixXd& center0,
-	const Eigen::MatrixXd& radius0,
-	const Eigen::MatrixXd& cylinder_dir0)
-{
-	assert(Tobjective != NULL);
-	assert(V0.rows() >= 3 && V0.cols() == 3);
-	assert(F0.rows() >= 1 && F0.cols() == 3);
-	assert(norm0.rows() == F0.rows() && norm0.cols() == 3);
-	assert(center0.rows() == F0.rows() && center0.cols() == 3);
-	assert(radius0.rows() == F0.rows() && radius0.cols() == 1);
-	assert(cylinder_dir0.rows() == F0.rows() && cylinder_dir0.cols() == 3);
-	
-	
-	this->totalObjective = Tobjective;
-
-	int numH = OptimizationUtils::getNumberOfHinges(F0);
-	Cuda::initIndices(mesh_indices, F0.rows(), V0.rows(), numH);
+	int numH = OptimizationUtils::getNumberOfHinges(F);
+	Cuda::initIndices(mesh_indices, F.rows(), V.rows(), numH);
 
 	Cuda::AllocateMemory(X, mesh_indices.total_variables);
 	Cuda::AllocateMemory(p, mesh_indices.total_variables);
 	Cuda::AllocateMemory(curr_x, mesh_indices.total_variables);
 	Cuda::AllocateMemory(v_adam, mesh_indices.total_variables);
 	Cuda::AllocateMemory(s_adam, mesh_indices.total_variables);
-	
+}
+
+void Basic::init(
+	const Eigen::MatrixXd& V0,
+	const Eigen::MatrixXd& norm0,
+	const Eigen::MatrixXd& center0,
+	const Eigen::MatrixXd& radius0,
+	const Eigen::MatrixXd& cylinder_dir0)
+{
+	assert(V0.rows()			== mesh_indices.num_vertices	&& V0.cols()			== 3);
+	assert(norm0.rows()			== mesh_indices.num_faces		&& norm0.cols()			== 3);
+	assert(center0.rows()		== mesh_indices.num_faces		&& center0.cols()		== 3);
+	assert(radius0.rows()		== mesh_indices.num_faces		&& radius0.cols()		== 1);
+	assert(cylinder_dir0.rows() == mesh_indices.num_faces		&& cylinder_dir0.cols()	== 3);
 	for (int vi = 0; vi < mesh_indices.num_vertices; vi++) {
 		X.host_arr[vi + mesh_indices.startVx] = V0(vi, 0);
 		X.host_arr[vi + mesh_indices.startVy] = V0(vi, 1);
