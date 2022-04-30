@@ -36,5 +36,17 @@ namespace NumericalOptimizations {
 			Eigen::MatrixXd& C,
 			Eigen::VectorXd& R);
 
+		void Least_Squares_Cylinder_Fit(
+			const int imax,
+			const int jmax,
+			const int Distance,
+			const Eigen::MatrixXd& V,
+			const Eigen::MatrixXi& F,
+			Eigen::MatrixXd& center0,
+			Eigen::MatrixXd& dir0,
+			Eigen::VectorXd& radius0);
+
 	};
+
+
 };
