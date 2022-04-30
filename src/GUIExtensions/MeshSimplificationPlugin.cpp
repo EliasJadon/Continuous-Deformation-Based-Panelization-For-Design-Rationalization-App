@@ -1645,26 +1645,32 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 		Outputs[ui.Output_Index].setFaceColors(ui.Face_index, Highlighted_face_color.cast<double>());
 	}
 		
-	for (auto& o:Outputs) {
+	for (int oi = 0; oi < Outputs.size(); oi++) {
+		auto& o = Outputs[oi];
 		//Mark the clusters if needed
-		if (clusteringType == app_utils::ClusteringType::NO_CLUS && 
-			(	face_coloring_Type == app_utils::Face_Colors::NORMAL  || 
-				face_coloring_Type == app_utils::Face_Colors::SPHERE  ||
-				face_coloring_Type == app_utils::Face_Colors::CYLINDER )) 
+		if (clusteringType == app_utils::ClusteringType::NO_CLUS &&
+			(face_coloring_Type == app_utils::Face_Colors::NORMAL ||
+				face_coloring_Type == app_utils::Face_Colors::SPHERE ||
+				face_coloring_Type == app_utils::Face_Colors::CYLINDER))
 		{
 			Eigen::MatrixX3d P = o.N;
 			if (face_coloring_Type == app_utils::Face_Colors::SPHERE) {
-				Eigen::MatrixXd C = o.C;
-				Eigen::VectorXd R = o.R;
-				for (int fi = 0; fi < C.rows(); fi++)
-					P.row(fi) << C(fi, 0) * R(fi), C(fi, 1), C(fi, 2);
+				for (int fi = 0; fi < o.C.rows(); fi++)
+					P.row(fi) << o.C(fi, 0) * o.R(fi), o.C(fi, 1), o.C(fi, 2);
 			}
 			if (face_coloring_Type == app_utils::Face_Colors::CYLINDER) {
-				Eigen::MatrixXd C = o.C;
-				Eigen::MatrixXd A = o.A;
-				Eigen::VectorXd R = o.R;
-				for (int fi = 0; fi < C.rows(); fi++)
-					P.row(fi) << C(fi, 0) * A(fi, 0) * R(fi), C(fi, 1)* A(fi, 1), C(fi, 2)* A(fi, 2);
+				auto& V = OutputModel(oi).V;
+				Eigen::RowVector3d Cmin(o.C.col(0).minCoeff(), o.C.col(1).minCoeff(), o.C.col(2).minCoeff());
+				double Rmin = o.R.minCoeff();
+				Eigen::RowVector3d Vmin(V.col(0).minCoeff(), V.col(1).minCoeff(), V.col(2).minCoeff());
+				Eigen::RowVector3d Vmax(V.col(0).maxCoeff(), V.col(1).maxCoeff(), V.col(2).maxCoeff());
+				double bounding_box_radius = 0.5 * (Vmax - Vmin).norm();
+				for (int fi = 0; fi < o.C.rows(); fi++) {
+					P.row(fi) <<
+						((o.C(fi, 0) - Cmin(0)) / bounding_box_radius) + o.A(fi, 0) + ((o.R(fi) - Rmin) / bounding_box_radius),
+						((o.C(fi, 1) - Cmin(1)) / bounding_box_radius) + o.A(fi, 1),
+						((o.C(fi, 2) - Cmin(2)) / bounding_box_radius) + o.A(fi, 2);
+				}
 			}
 			Eigen::RowVector3d Pmin(P.col(0).minCoeff(), P.col(1).minCoeff(), P.col(2).minCoeff());
 			Eigen::RowVector3d Pmax(P.col(0).maxCoeff(), P.col(1).maxCoeff(), P.col(2).maxCoeff());
@@ -1676,7 +1682,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 						P(fi, xyz) = 0.5;
 					else
 						P(fi, xyz) = (P(fi, xyz) - Pmin(xyz)) / range;
-				}	
+				}
 				//Add Brightness according to user weight...
 				for (int col = 0; col < 3; col++)
 					P(fi, col) = (clustering_brightness_w * P(fi, col)) + (1 - clustering_brightness_w);
@@ -1687,9 +1693,9 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 			o.clustering_faces_indices = {};
 		}
 		else if (clusteringType != app_utils::ClusteringType::NO_CLUS && o.clustering_faces_indices.size() &&
-				(	face_coloring_Type == app_utils::Face_Colors::NORMAL  || 
-					face_coloring_Type == app_utils::Face_Colors::SPHERE  || 
-					face_coloring_Type == app_utils::Face_Colors::CYLINDER)) 
+			(face_coloring_Type == app_utils::Face_Colors::NORMAL ||
+				face_coloring_Type == app_utils::Face_Colors::SPHERE ||
+				face_coloring_Type == app_utils::Face_Colors::CYLINDER))
 		{
 			o.clustering_colors.getFacesColors(o.clustering_faces_indices, InputModel().F.rows(), clustering_brightness_w, o.clustering_faces_colors);
 			//set faces colors
@@ -1700,7 +1706,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 			auto& AS = o.minimizer->totalObjective->aux_sphere;
 			for (int hi = 0; hi < AS->mesh_indices.num_hinges; hi++) {
 				const int f0 = AS->hinges_faceIndex[hi][0];
-				const int f1 = AS->hinges_faceIndex[hi][1]; 
+				const int f1 = AS->hinges_faceIndex[hi][1];
 				const double log_minus_w = -log2(AS->Sigmoid_PerHinge.host_arr[hi]);
 				const double alpha = log_minus_w / MAX_SIGMOID_PER_HINGE_VALUE;
 				o.shiftFaceColors(f0, alpha, model_color, ui.colorP);
@@ -1716,7 +1722,7 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 				o.setFaceColors(p.second, Eigen::Vector3d(0, 1, 0));
 			}
 		}
-		
+
 		if (isChecking_FlippedFaces) {
 			for (int fi = 0; fi < InputModel().F.rows(); fi++)
 				o.setFaceColors(fi, model_color.cast<double>());
