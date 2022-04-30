@@ -371,7 +371,7 @@ static std::set<int> Get_Vertices_Neighbors_With_distance(
 	return neigh;
 }
 
-void NumericalOptimizations::InitAuxVar::Least_Squares_Cylinder_Fit(
+void NumericalOptimizations::InitAuxVar::cylinder_fit_wrapper(
 	const int imax,
 	const int jmax,
 	const int Distance,

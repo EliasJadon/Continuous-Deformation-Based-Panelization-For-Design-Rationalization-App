@@ -23,12 +23,15 @@ MeshSimplificationPlugin::MeshSimplificationPlugin(){
 IGL_INLINE void MeshSimplificationPlugin::init(igl::opengl::glfw::Viewer *_viewer)
 {
 	ImGuiPlugin::init(_viewer);
-	for (int i = 0; i < 7; i++)
+	for (int i = 0; i < 9; i++)
 		CollapsingHeader_prev[i] = CollapsingHeader_curr[i] = false;
 	UserInterface_UpdateAllOutputs = false;
 	CollapsingHeader_change = false;
 	neighbor_distance = brush_radius = 0.3;
-	initSphereAuxVariables = OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS;
+	manual_cylinder_dir[0] = 1;
+	manual_cylinder_dir[1] = 0;
+	manual_cylinder_dir[2] = 0;
+	init_aux_var_type = NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL;
 	IsMouseDraggingAnyWindow = false;
 	isAnyMinimizerRunning = false;
 	energies_window = results_window = outputs_window = true;
@@ -442,8 +445,9 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 {
 	if (CollapsingHeader_change)
 		ImGui::SetNextItemOpen(CollapsingHeader_curr[4]);
-	if (ImGui::CollapsingHeader("Minimizer"))
+	if (ImGui::CollapsingHeader("Numerical Optimization"))
 	{
+		ImGui::Text("Minimizer");
 		CollapsingHeader_curr[4] = true;
 		if (ImGui::Button("Run one iter"))
 			run_one_minimizer_iter();
@@ -451,28 +455,38 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 			isAnyMinimizerRunning ? start_all_minimizers_threads() : stop_all_minimizers_threads();
 		if (ImGui::Combo("Optimizer", (int *)(&optimizer_type), "Gradient Descent\0Adam\0\0"))
 			change_minimizer_type(optimizer_type);
-		if (ImGui::Combo("init sphere var", (int *)(&initSphereAuxVariables), "Sphere Fit\0Mesh Center\0Minus Normal\0\0"))
+		
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("Init Aux Variables");
+
+
+		if (ImGui::Combo("init type", (int *)(&init_aux_var_type), INIT_AUX_VAR_MENU))
 			init_aux_variables();
-		if (initSphereAuxVariables == OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS &&
-			ImGui::DragFloat("radius length", &radius_length_minus_normal, 0.01f, 0.0f, 1000.0f, "%.7f"))
+		if (ImGui::DragFloat("radius length", &manual_radius_value))
 			init_aux_variables();
-		if (initSphereAuxVariables == OptimizationUtils::InitSphereAuxVariables::SPHERE_FIT) 
-		{
-			if (ImGui::DragInt("Neigh From", &(InitMinimizer_NeighLevel_From), 1, 1, 200))
-				init_aux_variables();
-			if (ImGui::DragInt("Neigh To", &(InitMinimizer_NeighLevel_To), 1, 1, 200))
-				init_aux_variables();
+		if (ImGui::DragFloat3("cylinder dir", manual_cylinder_dir))
+			init_aux_variables();
+		if (ImGui::DragInt("Neigh. level", &(InitMinimizer_NeighLevel))) {
+			InitMinimizer_NeighLevel = std::max(InitMinimizer_NeighLevel, 1);
+			init_aux_variables();
 		}
 
-		if (ImGui::Combo("line search", (int *)(&linesearch_type), "Gradient Norm\0Function Value\0Constant Step\0\0")) {
+
+			
+		
+		ImGui::Text("");
+		ImGui::Text("");
+		ImGui::Text("Line search");
+		if (ImGui::Combo("line search type", (int *)(&linesearch_type), "Gradient Norm\0Function Value\0Constant Step\0\0")) {
 			for (auto& o : Outputs)
 				o.minimizer->lineSearch_type = linesearch_type;
 		}
-		if (linesearch_type == OptimizationUtils::LineSearch::CONSTANT_STEP && ImGui::DragFloat("Step value", &constantStep_LineSearch, 0.0001f, 0.0f, 1.0f, "%.7f")) {
+		if (ImGui::DragFloat("Const. step value", &constantStep_LineSearch)) {
 			for (auto& o : Outputs)
 				o.minimizer->constantStep_LineSearch = constantStep_LineSearch;	
 		}
-		if (ImGui::Button("Check gradients"))
+		if (ImGui::Button("FD gradient test"))
 			checkGradients();
 	}
 }
@@ -559,6 +573,7 @@ void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& 
 				}
 			}
 		}
+		/*
 		if (make_checkbox("Show texture", data.show_texture) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_texture = data.show_texture;
@@ -574,12 +589,14 @@ void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& 
 			else
 				data.dirty |= igl::opengl::MeshGL::DIRTY_NORMAL;
 		}
+		
 		if (make_checkbox("Show overlay", data.show_overlay) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_overlay = data.show_overlay;
 		if (make_checkbox("Show overlay depth", data.show_overlay_depth) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_overlay_depth = data.show_overlay_depth;
+		
 		if (ImGui::ColorEdit4("Line color", data.line_color.data(), ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_PickerHueWheel) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.line_color = data.line_color;
@@ -897,30 +914,31 @@ void MeshSimplificationPlugin::Draw_output_window()
 			ImGuiWindowFlags_NoMove
 		);
 		ImGui::Checkbox("Update all models together", &isUpdateAll);
-		CollapsingHeader_cores(viewer->core(out.CoreID), viewer->data(out.ModelID));
-		CollapsingHeader_models(viewer->data(out.ModelID));
 
 		ImGui::Text("Show:");
 		if (ImGui::Checkbox("Norm", &(out.showFacesNorm)) && isUpdateAll)
-			for (auto&oi : Outputs)
+			for (auto& oi : Outputs)
 				oi.showFacesNorm = out.showFacesNorm;
 		ImGui::SameLine();
 		if (ImGui::Checkbox("Norm Edges", &(out.showNormEdges)) && isUpdateAll)
-			for (auto&oi : Outputs)
+			for (auto& oi : Outputs)
 				oi.showNormEdges = out.showNormEdges;
 		if (ImGui::Checkbox("Sphere", &(out.showSphereCenters)) && isUpdateAll)
-			for (auto&oi : Outputs)
+			for (auto& oi : Outputs)
 				oi.showSphereCenters = out.showSphereCenters;
 		ImGui::SameLine();
 		if (ImGui::Checkbox("Sphere Edges", &(out.showSphereEdges)) && isUpdateAll)
-			for (auto&oi : Outputs)
+			for (auto& oi : Outputs)
 				oi.showSphereEdges = out.showSphereEdges;
 		if (ImGui::Checkbox("Face Centers", &(out.showTriangleCenters)) && isUpdateAll)
-			for (auto&oi : Outputs)
+			for (auto& oi : Outputs)
 				oi.showTriangleCenters = out.showTriangleCenters;
-		if(ImGui::Checkbox("Cylinder Dir", &(out.showCylinderDir)) && isUpdateAll)
+		if (ImGui::Checkbox("Cylinder Dir", &(out.showCylinderDir)) && isUpdateAll)
 			for (auto& oi : Outputs)
 				oi.showCylinderDir = out.showCylinderDir;
+
+		CollapsingHeader_cores(viewer->core(out.CoreID), viewer->data(out.ModelID));
+		CollapsingHeader_models(viewer->data(out.ModelID));
 		ImGui::End();
 	}
 }
@@ -1406,7 +1424,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	{
 		neighbor_Type = app_utils::Neighbor_Type::LOCAL_SPHERE;
 		face_coloring_Type = app_utils::Face_Colors::SPHERES_CLUSTERING;
-		initSphereAuxVariables = OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS;
+		init_aux_var_type = NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL;
 		init_aux_variables();
 		for (auto&out : Outputs) {
 			out.showSphereCenters = true;
@@ -1427,7 +1445,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	{
 		neighbor_Type = app_utils::Neighbor_Type::LOCAL_SPHERE;
 		face_coloring_Type = app_utils::Face_Colors::SPHERES_CLUSTERING;
-		initSphereAuxVariables = OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS;
+		init_aux_var_type = NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL;
 		init_aux_variables();
 		for (auto& out : Outputs) {
 			out.showSphereCenters = out.showCylinderDir = true;
@@ -1895,18 +1913,15 @@ void MeshSimplificationPlugin::start_one_minimizer_thread(const GUIExtensions::M
 void MeshSimplificationPlugin::init_aux_variables() 
 {
 	stop_all_minimizers_threads();
-	if (InitMinimizer_NeighLevel_From < 1)
-		InitMinimizer_NeighLevel_From = 1;
-	if (InitMinimizer_NeighLevel_From > InitMinimizer_NeighLevel_To)
-		InitMinimizer_NeighLevel_To = InitMinimizer_NeighLevel_From;
 	for (int i = 0; i < Outputs.size(); i++)
 		Outputs[i].initMinimizers(
 			OutputModel(i).V,
 			OutputModel(i).F,
-			initSphereAuxVariables,
-			InitMinimizer_NeighLevel_From,
-			InitMinimizer_NeighLevel_To,
-			radius_length_minus_normal);
+			init_aux_var_type,
+			InitMinimizer_NeighLevel,
+			manual_radius_value,
+			Eigen::RowVector3d(manual_cylinder_dir[0], manual_cylinder_dir[1], manual_cylinder_dir[2])
+		);
 }
 
 void MeshSimplificationPlugin::run_one_minimizer_iter() 

@@ -14,8 +14,25 @@
 #include <set>
 #include <igl/PI.h>
 
+#define INIT_AUX_VAR_MENU	("SPHERE_AUTO\0"						\
+							"SPHERE_AUTO_ALIGNED_TO_NORMAL\0"		\
+							"SPHERE_MANUAL_ALIGNED_TO_NORMAL\0"		\
+							"SPHERE_AUTO_CENTER_POINT\0"			\
+							"CYLINDER_AUTO\0"						\
+							"CYLINDER_AUTO_ALIGNED_TO_NORMAL\0"		\
+							"CYLINDER_MANUAL_ALIGNED_TO_NORMAL\0")
+
 namespace NumericalOptimizations {
 	namespace InitAuxVar {
+		enum type {
+			SPHERE_AUTO,
+			SPHERE_AUTO_ALIGNED_TO_NORMAL,
+			SPHERE_MANUAL_ALIGNED_TO_NORMAL,
+			SPHERE_AUTO_CENTER_POINT,
+			CYLINDER_AUTO,
+			CYLINDER_AUTO_ALIGNED_TO_NORMAL,
+			CYLINDER_MANUAL_ALIGNED_TO_NORMAL
+		};
 
 		// A wrapper function which loop over all faces
 		// and find for each face the most suitable sphere
@@ -36,7 +53,7 @@ namespace NumericalOptimizations {
 			Eigen::MatrixXd& C,
 			Eigen::VectorXd& R);
 
-		void Least_Squares_Cylinder_Fit(
+		void cylinder_fit_wrapper(
 			const int imax,
 			const int jmax,
 			const int Distance,

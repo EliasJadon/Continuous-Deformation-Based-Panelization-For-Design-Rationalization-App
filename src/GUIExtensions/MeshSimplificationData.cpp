@@ -154,34 +154,66 @@ void MeshSimplificationData::shiftFaceColors(
 }
 
 void MeshSimplificationData::initMinimizers(
-	const Eigen::MatrixXd& V, const Eigen::MatrixXi& F,
-	const OptimizationUtils::InitSphereAuxVariables& typeAuxVar,
-	const int distance_from, const int distance_to,
-	const double minus_normals_radius_length)
+	const Eigen::MatrixXd& V, 
+	const Eigen::MatrixXi& F,
+	const NumericalOptimizations::InitAuxVar::type& init_aux_var_type,
+	const int NeighLevel, 
+	const double manual_radius_value,
+	const Eigen::RowVector3d manual_cylinder_dir)
 {
 	N.resize(F.rows(), 3);
 	C.resize(F.rows(), 3);
 	A.resize(F.rows(), 3);
 	R.resize(F.rows());
+	N.setZero();
+	C.setZero();
+	A.setZero();
+	R.setZero();
+
 	Eigen::MatrixX3d N_temp;
 	igl::per_face_normals((Eigen::MatrixX3d)V, (Eigen::MatrixX3i)F, N_temp);
 	N = N_temp;
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
-	
-	for (int fi = 0; fi < F.rows(); fi++)
-		A.row(fi) << 0, 1, 0; //(V.row(F(fi, 1)) - V.row(F(fi, 0))).normalized();
-	
-	R.setConstant(minus_normals_radius_length);
 
-	if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::SPHERE_FIT)
-		NumericalOptimizations::InitAuxVar::sphere_fit_wrapper(distance_to, V, F, C, R);
-	else if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::MODEL_CENTER_POINT)
-		OptimizationUtils::center_of_mesh(V, F, C, R);
-	else if (typeAuxVar == OptimizationUtils::InitSphereAuxVariables::MINUS_NORMALS) {
+	switch (init_aux_var_type) {
+	case NumericalOptimizations::InitAuxVar::SPHERE_AUTO:
+		NumericalOptimizations::InitAuxVar::sphere_fit_wrapper(NeighLevel, V, F, C, R);
+		break;
+	case NumericalOptimizations::InitAuxVar::SPHERE_AUTO_ALIGNED_TO_NORMAL:
+		NumericalOptimizations::InitAuxVar::sphere_fit_aligned_to_normal_wrapper(NeighLevel, V, F, C, R);
+		break;
+	case NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL:
+		R.setConstant(manual_radius_value);
 		for (int i = 0; i < C.rows(); i++)
 			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
+		break;
+	case NumericalOptimizations::InitAuxVar::SPHERE_AUTO_CENTER_POINT:
+		OptimizationUtils::center_of_mesh(V, F, C, R);
+		break;
+	case NumericalOptimizations::InitAuxVar::CYLINDER_AUTO:
+		NumericalOptimizations::InitAuxVar::cylinder_fit_wrapper(18, 18, NeighLevel, V, F, C, A, R);
+		break;
+	case NumericalOptimizations::InitAuxVar::CYLINDER_AUTO_ALIGNED_TO_NORMAL:
+		//TODO: implement the function
+		break;
+	case NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL:
+		R.setConstant(manual_radius_value);
+		for (int i = 0; i < C.rows(); i++)
+			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
+		for (int fi = 0; fi < F.rows(); fi++)
+			A.row(fi) = manual_cylinder_dir.normalized();
+		break;
 	}
 	
+	/*for (int ai = 1; ai < A.rows(); ai++) {
+		double a = (A.row(ai) - A.row(0)).squaredNorm();
+		double b = (A.row(ai) + A.row(0)).squaredNorm();
+		if (b < a) {
+			A.row(ai) = -A.row(ai);
+		}
+	}*/
+
+
 	minimizer->init(V, N, C, R, A);
 }
 

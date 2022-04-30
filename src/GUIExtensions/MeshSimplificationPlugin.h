@@ -14,11 +14,10 @@ namespace GUIExtensions {
 		float SelfIntersection_epsilon = 0.001;
 		bool isChecking_FlippedFaces = false;
 		int ActiveOutput = 0;
-		int InitMinimizer_NeighLevel_From = 1;
-		int InitMinimizer_NeighLevel_To = 10;
+		int InitMinimizer_NeighLevel = 5;
 		bool CollapsingHeader_curr[9], CollapsingHeader_prev[9], CollapsingHeader_change;
 		bool outputs_window, results_window, energies_window;
-		OptimizationUtils::InitSphereAuxVariables initSphereAuxVariables;
+		NumericalOptimizations::InitAuxVar::type init_aux_var_type;
 		float Max_Distortion;
 		float neighbor_distance, brush_radius;
 		bool isUpdateAll;
@@ -60,7 +59,8 @@ namespace GUIExtensions {
 
 		ImVec2 energies_window_position, global_screen_size;
 		bool UserInterface_UpdateAllOutputs;
-		float radius_length_minus_normal = 0.1;
+		float manual_radius_value = 0.1;
+		float manual_cylinder_dir[3];
 	public:
 		MeshSimplificationPlugin();
 		~MeshSimplificationPlugin() {}

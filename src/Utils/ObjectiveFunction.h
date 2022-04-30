@@ -197,7 +197,6 @@ namespace Cuda
 
 namespace OptimizationUtils
 {
-	enum InitSphereAuxVariables { SPHERE_FIT, MODEL_CENTER_POINT, MINUS_NORMALS };
 	enum LineSearch { GRADIENT_NORM, FUNCTION_VALUE, CONSTANT_STEP };
 
 	static std::vector<int> FaceToHinge_indices(

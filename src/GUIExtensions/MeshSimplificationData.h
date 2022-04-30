@@ -1,5 +1,6 @@
 #pragma once
 #include "Utils/GUI.h"
+#include "NumericalOptimizations/InitAuxVar.h"
 
 namespace GUIExtensions {
 	class MeshSimplificationData {
@@ -44,9 +45,11 @@ namespace GUIExtensions {
 		void setFaceColors(const int fi, const Eigen::Vector3d color);
 		void shiftFaceColors(const int fi, const double alpha, const Eigen::Vector3f model_color, const Eigen::Vector3f color);
 		void initMinimizers(
-			const Eigen::MatrixXd& V, const Eigen::MatrixXi& F,
-			const OptimizationUtils::InitSphereAuxVariables& typeAuxVar,
-			const int distance_from, const int distance_to,
-			const double minus_normals_radius_length);
+			const Eigen::MatrixXd& V,
+			const Eigen::MatrixXi& F,
+			const NumericalOptimizations::InitAuxVar::type& init_aux_var_type,
+			const int NeighLevel,
+			const double manual_radius_value,
+			const Eigen::RowVector3d manual_cylinder_dir);
 	};
 };
