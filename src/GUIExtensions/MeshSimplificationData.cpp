@@ -11,6 +11,7 @@ MeshSimplificationData::MeshSimplificationData(
 	this->CoreID = CoreID;
 	this->ModelID = meshID;
 	showFacesNorm = showSphereEdges = showNormEdges = showTriangleCenters = showSphereCenters = false;
+	showCylinderDir = false;
 }
 
 std::vector<int> MeshSimplificationData::GlobNeighSphereCenters(
@@ -221,7 +222,7 @@ Eigen::MatrixX4d MeshSimplificationData::getValues(const app_utils::Face_Colors 
 	Eigen::MatrixX4d values(N.rows(), 4);
 	for (int fi = 0; fi < N.rows(); fi++) {
 		values.row(fi) = Eigen::Vector4d(N(fi, 0), N(fi, 1), N(fi, 2), 0);
-		if (face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)
+		if (face_coloring_Type == app_utils::Face_Colors::SPHERE)
 			values.row(fi) = Eigen::Vector4d(C(fi, 0), C(fi, 1), C(fi, 2), R[fi]);
 	}
 	return values;

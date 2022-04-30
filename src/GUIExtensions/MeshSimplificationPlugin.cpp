@@ -284,9 +284,9 @@ void MeshSimplificationPlugin::CollapsingHeader_measures() {
 				const Eigen::MatrixXi& F = OutputModel(oi).F;
 				const Eigen::MatrixXd& C = Outputs[oi].C;
 				const std::vector<std::vector<int>>& clusters = Outputs[oi].clustering_faces_indices;
-				if (face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)
+				if (face_coloring_Type == app_utils::Face_Colors::SPHERE)
 					app_utils::sphere_error_distribution(V, F, C, clusters, max_all, min_all, avg_all, std_all);
-				if (face_coloring_Type == app_utils::Face_Colors::NORMALS_CLUSTERING)
+				if (face_coloring_Type == app_utils::Face_Colors::NORMAL)
 					app_utils::planar_error_distribution(V, F, clusters, max_all, min_all, avg_all, std_all);
 			}
 		}
@@ -321,9 +321,9 @@ void MeshSimplificationPlugin::CollapsingHeader_measures() {
 					if (cluster_index != NOT_FOUND) {
 						//output the cluster data
 						ImGui::Text(("Cluster: " + std::to_string(cluster_index)).c_str());
-						if (face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)
+						if (face_coloring_Type == app_utils::Face_Colors::SPHERE)
 							app_utils::sphere_error_distribution(V, F, C, { clusters[cluster_index] }, max, min, avg, std);
-						if (face_coloring_Type == app_utils::Face_Colors::NORMALS_CLUSTERING)
+						if (face_coloring_Type == app_utils::Face_Colors::NORMAL)
 							app_utils::planar_error_distribution(V, F, { clusters[cluster_index] }, max, min, avg, std);
 						if (max != -1) {
 							ImGui::Text(("Max: " + std::to_string(max * 1000) + "m").c_str());
@@ -1355,19 +1355,6 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 {
 	if ((key == 'c' || key == 'C') && modifiers == 1)
 		clear_sellected_faces_and_vertices();
-	if ((key == 'x' || key == 'X') && modifiers == 1) {
-		if (face_coloring_Type == app_utils::Face_Colors::NO_COLORS) {
-			face_coloring_Type = app_utils::Face_Colors::SPHERES_CLUSTERING;
-			if (neighbor_Type == app_utils::Neighbor_Type::LOCAL_NORMALS)
-				face_coloring_Type = app_utils::Face_Colors::NORMALS_CLUSTERING;
-		}
-		else if (face_coloring_Type == app_utils::Face_Colors::SIGMOID_PARAMETER) {
-			face_coloring_Type = app_utils::Face_Colors::NO_COLORS;
-		}	
-		else {
-			face_coloring_Type = app_utils::Face_Colors::SIGMOID_PARAMETER;
-		}
-	}
 	if ((key == 'f' || key == 'F') && modifiers == 1) {
 		if (viewer->data_list[0].show_faces == false) {
 			for (auto& out : Outputs) {
@@ -1387,7 +1374,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	if ((key == 'q' || key == 'Q') && modifiers == 1) 
 	{
 		neighbor_Type = app_utils::Neighbor_Type::LOCAL_NORMALS;
-		face_coloring_Type = app_utils::Face_Colors::NORMALS_CLUSTERING;
+		face_coloring_Type = app_utils::Face_Colors::NORMAL;
 		for (auto&out : Outputs) {
 			out.showFacesNorm = false;
 			out.showSphereEdges = out.showNormEdges = 
@@ -1405,7 +1392,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	if ((key == 'e' || key == 'E') && modifiers == 1)
 	{
 		neighbor_Type = app_utils::Neighbor_Type::LOCAL_NORMALS;
-		face_coloring_Type = app_utils::Face_Colors::NORMALS_CLUSTERING;
+		face_coloring_Type = app_utils::Face_Colors::NORMAL;
 		for (auto& out : Outputs) {
 			out.showFacesNorm = true;
 			out.showSphereEdges = out.showNormEdges =
@@ -1423,7 +1410,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	if ((key == 'w' || key == 'W') && modifiers == 1) 
 	{
 		neighbor_Type = app_utils::Neighbor_Type::LOCAL_SPHERE;
-		face_coloring_Type = app_utils::Face_Colors::SPHERES_CLUSTERING;
+		face_coloring_Type = app_utils::Face_Colors::SPHERE;
 		init_aux_var_type = NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL;
 		init_aux_variables();
 		for (auto&out : Outputs) {
@@ -1444,7 +1431,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	if ((key == 'r' || key == 'R') && modifiers == 1)
 	{
 		neighbor_Type = app_utils::Neighbor_Type::LOCAL_SPHERE;
-		face_coloring_Type = app_utils::Face_Colors::SPHERES_CLUSTERING;
+		face_coloring_Type = app_utils::Face_Colors::CYLINDER;
 		init_aux_var_type = NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL;
 		init_aux_variables();
 		for (auto& out : Outputs) {
@@ -1660,13 +1647,24 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 		
 	for (auto& o:Outputs) {
 		//Mark the clusters if needed
-		if (clusteringType == app_utils::ClusteringType::NO_CLUS && (face_coloring_Type == app_utils::Face_Colors::NORMALS_CLUSTERING || face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)) {
+		if (clusteringType == app_utils::ClusteringType::NO_CLUS && 
+			(	face_coloring_Type == app_utils::Face_Colors::NORMAL  || 
+				face_coloring_Type == app_utils::Face_Colors::SPHERE  ||
+				face_coloring_Type == app_utils::Face_Colors::CYLINDER )) 
+		{
 			Eigen::MatrixX3d P = o.N;
-			if (face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING) {
+			if (face_coloring_Type == app_utils::Face_Colors::SPHERE) {
 				Eigen::MatrixXd C = o.C;
 				Eigen::VectorXd R = o.R;
 				for (int fi = 0; fi < C.rows(); fi++)
 					P.row(fi) << C(fi, 0) * R(fi), C(fi, 1), C(fi, 2);
+			}
+			if (face_coloring_Type == app_utils::Face_Colors::CYLINDER) {
+				Eigen::MatrixXd C = o.C;
+				Eigen::MatrixXd A = o.A;
+				Eigen::VectorXd R = o.R;
+				for (int fi = 0; fi < C.rows(); fi++)
+					P.row(fi) << C(fi, 0) * A(fi, 0) * R(fi), C(fi, 1)* A(fi, 1), C(fi, 2)* A(fi, 2);
 			}
 			Eigen::RowVector3d Pmin(P.col(0).minCoeff(), P.col(1).minCoeff(), P.col(2).minCoeff());
 			Eigen::RowVector3d Pmax(P.col(0).maxCoeff(), P.col(1).maxCoeff(), P.col(2).maxCoeff());
@@ -1689,7 +1687,9 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 			o.clustering_faces_indices = {};
 		}
 		else if (clusteringType != app_utils::ClusteringType::NO_CLUS && o.clustering_faces_indices.size() &&
-			(face_coloring_Type == app_utils::Face_Colors::NORMALS_CLUSTERING || face_coloring_Type == app_utils::Face_Colors::SPHERES_CLUSTERING)) 
+				(	face_coloring_Type == app_utils::Face_Colors::NORMAL  || 
+					face_coloring_Type == app_utils::Face_Colors::SPHERE  || 
+					face_coloring_Type == app_utils::Face_Colors::CYLINDER)) 
 		{
 			o.clustering_colors.getFacesColors(o.clustering_faces_indices, InputModel().F.rows(), clustering_brightness_w, o.clustering_faces_colors);
 			//set faces colors

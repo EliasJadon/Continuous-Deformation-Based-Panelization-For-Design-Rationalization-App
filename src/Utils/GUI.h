@@ -44,8 +44,9 @@
 namespace app_utils {
 	enum Face_Colors { 
 		NO_COLORS, 
-		NORMALS_CLUSTERING, 
-		SPHERES_CLUSTERING,
+		NORMAL, 
+		SPHERE,
+		CYLINDER,
 		SIGMOID_PARAMETER
 	};
 	enum View {
