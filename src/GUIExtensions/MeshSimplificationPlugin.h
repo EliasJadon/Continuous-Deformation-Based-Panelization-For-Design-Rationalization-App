@@ -61,6 +61,7 @@ namespace GUIExtensions {
 		bool UserInterface_UpdateAllOutputs;
 		float manual_radius_value = 0.1;
 		float manual_cylinder_dir[3];
+		float helper_vector_dir[3];
 	public:
 		MeshSimplificationPlugin();
 		~MeshSimplificationPlugin() {}

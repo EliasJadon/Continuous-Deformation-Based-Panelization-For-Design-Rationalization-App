@@ -50,6 +50,7 @@ namespace GUIExtensions {
 			const NumericalOptimizations::InitAuxVar::type& init_aux_var_type,
 			const int NeighLevel,
 			const double manual_radius_value,
-			const Eigen::RowVector3d manual_cylinder_dir);
+			const Eigen::RowVector3d manual_cylinder_dir,
+			const Eigen::RowVector3d helper_vector_dir);
 	};
 };

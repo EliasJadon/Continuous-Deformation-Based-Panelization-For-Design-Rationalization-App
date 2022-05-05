@@ -160,7 +160,8 @@ void MeshSimplificationData::initMinimizers(
 	const NumericalOptimizations::InitAuxVar::type& init_aux_var_type,
 	const int NeighLevel, 
 	const double manual_radius_value,
-	const Eigen::RowVector3d manual_cylinder_dir)
+	const Eigen::RowVector3d manual_cylinder_dir,
+	const Eigen::RowVector3d helper_vector_dir)
 {
 	N.resize(F.rows(), 3);
 	C.resize(F.rows(), 3);
@@ -196,6 +197,10 @@ void MeshSimplificationData::initMinimizers(
 		break;
 	case NumericalOptimizations::InitAuxVar::CYLINDER_AUTO_ALIGNED_TO_NORMAL:
 		//TODO: implement the function
+		NumericalOptimizations::InitAuxVar::cylinder_fit_wrapper(18, 18, NeighLevel, V, F, C, A, R);
+		R.setConstant(manual_radius_value);
+		for (int i = 0; i < C.rows(); i++)
+			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
 		break;
 	case NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL:
 		R.setConstant(manual_radius_value);
@@ -203,6 +208,21 @@ void MeshSimplificationData::initMinimizers(
 			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
 		for (int fi = 0; fi < F.rows(); fi++)
 			A.row(fi) = manual_cylinder_dir.normalized();
+		break;
+	case NumericalOptimizations::InitAuxVar::CYLINDER_VECTOR_HELPER_ALIGNED_TO_NORMAL:
+		R.setConstant(manual_radius_value);
+		for (int i = 0; i < C.rows(); i++)
+			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
+		for (int fi = 0; fi < F.rows(); fi++) {
+			Eigen::RowVector3d N(N.row(fi));
+			Eigen::RowVector3d H(helper_vector_dir.normalized());
+			Eigen::RowVector3d B1(N.cross(H).normalized());
+			Eigen::RowVector3d B2(N.cross(B1).normalized());
+			if (B2.norm() == 0)
+				A.row(fi) = helper_vector_dir.normalized();
+			else
+				A.row(fi) = B2;
+		}
 		break;
 	}
 	

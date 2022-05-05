@@ -20,7 +20,8 @@
 							"SPHERE_AUTO_CENTER_POINT\0"			\
 							"CYLINDER_AUTO\0"						\
 							"CYLINDER_AUTO_ALIGNED_TO_NORMAL\0"		\
-							"CYLINDER_MANUAL_ALIGNED_TO_NORMAL\0")
+							"CYLINDER_MANUAL_ALIGNED_TO_NORMAL\0"	\
+							"CYLINDER_VECTOR_HELPER_ALIGNED_TO_NORMAL\0\0")
 
 namespace NumericalOptimizations {
 	namespace InitAuxVar {
@@ -31,7 +32,8 @@ namespace NumericalOptimizations {
 			SPHERE_AUTO_CENTER_POINT,
 			CYLINDER_AUTO,
 			CYLINDER_AUTO_ALIGNED_TO_NORMAL,
-			CYLINDER_MANUAL_ALIGNED_TO_NORMAL
+			CYLINDER_MANUAL_ALIGNED_TO_NORMAL,
+			CYLINDER_VECTOR_HELPER_ALIGNED_TO_NORMAL
 		};
 
 		// A wrapper function which loop over all faces

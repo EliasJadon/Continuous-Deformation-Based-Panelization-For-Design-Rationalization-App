@@ -28,9 +28,9 @@ IGL_INLINE void MeshSimplificationPlugin::init(igl::opengl::glfw::Viewer *_viewe
 	UserInterface_UpdateAllOutputs = false;
 	CollapsingHeader_change = false;
 	neighbor_distance = brush_radius = 0.3;
-	manual_cylinder_dir[0] = 1;
-	manual_cylinder_dir[1] = 0;
-	manual_cylinder_dir[2] = 0;
+	helper_vector_dir[0] = manual_cylinder_dir[0] = 1;
+	helper_vector_dir[1] = manual_cylinder_dir[1] = 0;
+	helper_vector_dir[2] = manual_cylinder_dir[2] = 0;
 	init_aux_var_type = NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL;
 	IsMouseDraggingAnyWindow = false;
 	isAnyMinimizerRunning = false;
@@ -466,6 +466,8 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 		if (ImGui::DragFloat("radius length", &manual_radius_value))
 			init_aux_variables();
 		if (ImGui::DragFloat3("cylinder dir", manual_cylinder_dir))
+			init_aux_variables();
+		if (ImGui::DragFloat3("helper dir", helper_vector_dir))
 			init_aux_variables();
 		if (ImGui::DragInt("Neigh. level", &(InitMinimizer_NeighLevel))) {
 			InitMinimizer_NeighLevel = std::max(InitMinimizer_NeighLevel, 1);
@@ -1948,7 +1950,8 @@ void MeshSimplificationPlugin::init_aux_variables()
 			init_aux_var_type,
 			InitMinimizer_NeighLevel,
 			manual_radius_value,
-			Eigen::RowVector3d(manual_cylinder_dir[0], manual_cylinder_dir[1], manual_cylinder_dir[2])
+			Eigen::RowVector3d(manual_cylinder_dir[0], manual_cylinder_dir[1], manual_cylinder_dir[2]),
+			Eigen::RowVector3d(helper_vector_dir[0], helper_vector_dir[1], helper_vector_dir[2])
 		);
 }
 
