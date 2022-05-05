@@ -552,7 +552,7 @@ void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& 
 	auto make_checkbox = [&](const char *label, unsigned int &option) {
 		bool temp = option;
 		bool res = ImGui::Checkbox(label, &temp);
-		option = temp;
+		option = temp ? 0xFFFFFFFF : 0;
 		return res;
 	};
 	ImGui::PushID(data.id);
@@ -573,10 +573,11 @@ void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& 
 				}
 			}
 		}
-		/*
+		
 		if (make_checkbox("Show texture", data.show_texture) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_texture = data.show_texture;
+		
 		if (ImGui::Checkbox("Invert normals", &(data.invert_normals))) {
 			if (isUpdateAll)
 			{
@@ -593,6 +594,7 @@ void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& 
 		if (make_checkbox("Show overlay", data.show_overlay) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_overlay = data.show_overlay;
+		
 		if (make_checkbox("Show overlay depth", data.show_overlay_depth) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_overlay_depth = data.show_overlay_depth;
@@ -611,12 +613,12 @@ void MeshSimplificationPlugin::CollapsingHeader_models(igl::opengl::ViewerData& 
 		if (make_checkbox("Fill", data.show_faces) && isUpdateAll)
 			for(auto& d: viewer->data_list)
 				d.show_faces = data.show_faces;
-		/*if (ImGui::Checkbox("Show vertex labels", &(data.show_vertex_labels)) && isUpdateAll)
+		if (make_checkbox("Show vertex labels", data.show_vertex_labels) && isUpdateAll)
 			for (auto& d : viewer->data_list)
 				d.show_vertex_labels = data.show_vertex_labels;
-		if (ImGui::Checkbox("Show faces labels", &(data.show_face_labels)) && isUpdateAll)
+		if (make_checkbox("Show faces labels", data.show_face_labels) && isUpdateAll)
 			for (auto& d : viewer->data_list)
-				d.show_face_labels = data.show_face_labels;*/
+				d.show_face_labels = data.show_face_labels;
 	}
 	ImGui::PopID();
 }
@@ -1359,16 +1361,23 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 		if (viewer->data_list[0].show_faces == false) {
 			for (auto& out : Outputs) {
 				out.showNormEdges = out.showFacesNorm = false;
+				out.showSphereEdges = out.showCylinderDir = false;
+				out.showTriangleCenters = out.showSphereCenters = false;
 			}
 			for (auto& d : viewer->data_list)
-				d.show_faces = true;
+				d.show_faces = 0xFFFFFFFF;
 		}
 		else {
 			for (auto& out : Outputs) {
-				out.showNormEdges = out.showFacesNorm = true;
+				if (face_coloring_Type == app_utils::Face_Colors::CYLINDER)
+					out.showCylinderDir = out.showSphereCenters = true;
+				if (face_coloring_Type == app_utils::Face_Colors::NORMAL)
+					out.showNormEdges = out.showFacesNorm = true;
+				if (face_coloring_Type == app_utils::Face_Colors::SPHERE)
+					out.showSphereCenters = out.showSphereEdges = true;
 			}
 			for (auto& d : viewer->data_list)
-				d.show_faces = false;
+				d.show_faces = 0;
 		}
 	}
 	if ((key == 'q' || key == 'Q') && modifiers == 1) 
@@ -1655,6 +1664,19 @@ void MeshSimplificationPlugin::follow_and_mark_selected_faces()
 		{
 			Eigen::MatrixX3d P = o.N;
 			if (face_coloring_Type == app_utils::Face_Colors::SPHERE) {
+				auto& V = OutputModel(oi).V;
+				Eigen::RowVector3d Cmin(o.C.col(0).minCoeff(), o.C.col(1).minCoeff(), o.C.col(2).minCoeff());
+				double Rmin = o.R.minCoeff();
+				Eigen::RowVector3d Vmin(V.col(0).minCoeff(), V.col(1).minCoeff(), V.col(2).minCoeff());
+				Eigen::RowVector3d Vmax(V.col(0).maxCoeff(), V.col(1).maxCoeff(), V.col(2).maxCoeff());
+				double bounding_box_radius = 0.5 * (Vmax - Vmin).norm();
+				for (int fi = 0; fi < o.C.rows(); fi++) {
+					P.row(fi) <<
+						((o.C(fi, 0) - Cmin(0)) / bounding_box_radius) + ((o.R(fi) - Rmin) / bounding_box_radius),
+						((o.C(fi, 1) - Cmin(1)) / bounding_box_radius),
+						((o.C(fi, 2) - Cmin(2)) / bounding_box_radius);
+				}
+
 				for (int fi = 0; fi < o.C.rows(); fi++)
 					P.row(fi) << o.C(fi, 0) * o.R(fi), o.C(fi, 1), o.C(fi, 2);
 			}
