@@ -68,7 +68,8 @@ namespace app_utils {
 		FIX_FACES,
 		BRUSH_WEIGHTS_INCR,
 		BRUSH_WEIGHTS_DECR,
-		ADJ_WEIGHTS
+		ADJ_WEIGHTS,
+		FIX_FACES_FOR_CYLINDER_INIT
 	};
 	enum ClusteringType { NO_CLUS, Circle_clustering, Agglomerative_hierarchical, External };
 	
@@ -1185,11 +1186,14 @@ public:
 	bool isBrushingWeightInc() {
 		return (status == app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_INCR && isActive);
 	}
+	bool isBrushingCylinder() {
+		return (status == app_utils::UserInterfaceOptions::FIX_FACES_FOR_CYLINDER_INIT && isActive);
+	}
 	bool isBrushingWeightDec() {
 		return status == app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_DECR && ADD_DELETE == DELETE && isActive;
 	}
 	bool isBrushing() {
-		return (isBrushingWeightInc() || isBrushingWeightDec()) && Face_index != NOT_FOUND;
+		return (isBrushingWeightInc() || isBrushingWeightDec() || isBrushingCylinder()) && Face_index != NOT_FOUND;
 	}
 
 	Eigen::RowVector3d getBrushColor(const Eigen::Vector3f& model_color) {

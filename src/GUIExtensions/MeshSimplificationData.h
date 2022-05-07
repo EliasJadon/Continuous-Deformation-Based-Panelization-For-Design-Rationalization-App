@@ -24,6 +24,8 @@ namespace GUIExtensions {
 		bool showSphereEdges, showCylinderDir, showNormEdges, showTriangleCenters, showSphereCenters, showFacesNorm;
 
 		MeshSimplificationData(
+			const Eigen::MatrixXd& V,
+			const Eigen::MatrixXi& F,
 			const int CoreID,
 			const int meshID,
 			igl::opengl::glfw::Viewer* viewer);
@@ -51,6 +53,8 @@ namespace GUIExtensions {
 			const int NeighLevel,
 			const double manual_radius_value,
 			const Eigen::RowVector3d manual_cylinder_dir,
-			const Eigen::RowVector3d helper_vector_dir);
+			const Eigen::RowVector3d helper_vector_dir,
+			const Eigen::MatrixXd& manual_A,
+			const Eigen::VectorXd& manual_R);
 	};
 };

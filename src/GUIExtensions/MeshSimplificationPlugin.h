@@ -62,6 +62,10 @@ namespace GUIExtensions {
 		float manual_radius_value = 0.1;
 		float manual_cylinder_dir[3];
 		float helper_vector_dir[3];
+		float manual_A_per_face[3];
+		float manual_R_per_face;
+		Eigen::MatrixXd manual_A;
+		Eigen::VectorXd manual_R;
 	public:
 		MeshSimplificationPlugin();
 		~MeshSimplificationPlugin() {}

@@ -4,6 +4,8 @@
 using namespace GUIExtensions;
 
 MeshSimplificationData::MeshSimplificationData(
+	const Eigen::MatrixXd& V,
+	const Eigen::MatrixXi& F,
 	const int CoreID,
 	const int meshID,
 	igl::opengl::glfw::Viewer* viewer)
@@ -12,6 +14,7 @@ MeshSimplificationData::MeshSimplificationData(
 	this->ModelID = meshID;
 	showFacesNorm = showSphereEdges = showNormEdges = showTriangleCenters = showSphereCenters = false;
 	showCylinderDir = false;
+	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
 }
 
 std::vector<int> MeshSimplificationData::GlobNeighSphereCenters(
@@ -161,7 +164,9 @@ void MeshSimplificationData::initMinimizers(
 	const int NeighLevel, 
 	const double manual_radius_value,
 	const Eigen::RowVector3d manual_cylinder_dir,
-	const Eigen::RowVector3d helper_vector_dir)
+	const Eigen::RowVector3d helper_vector_dir,
+	const Eigen::MatrixXd& manual_A,
+	const Eigen::VectorXd& manual_R)
 {
 	N.resize(F.rows(), 3);
 	C.resize(F.rows(), 3);
@@ -178,23 +183,29 @@ void MeshSimplificationData::initMinimizers(
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
 
 	switch (init_aux_var_type) {
+	
 	case NumericalOptimizations::InitAuxVar::SPHERE_AUTO:
 		NumericalOptimizations::InitAuxVar::sphere_fit_wrapper(NeighLevel, V, F, C, R);
 		break;
+	
 	case NumericalOptimizations::InitAuxVar::SPHERE_AUTO_ALIGNED_TO_NORMAL:
 		NumericalOptimizations::InitAuxVar::sphere_fit_aligned_to_normal_wrapper(NeighLevel, V, F, C, R);
 		break;
+	
 	case NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL:
 		R.setConstant(manual_radius_value);
 		for (int i = 0; i < C.rows(); i++)
 			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
 		break;
+	
 	case NumericalOptimizations::InitAuxVar::SPHERE_AUTO_CENTER_POINT:
 		OptimizationUtils::center_of_mesh(V, F, C, R);
 		break;
+	
 	case NumericalOptimizations::InitAuxVar::CYLINDER_AUTO:
 		NumericalOptimizations::InitAuxVar::cylinder_fit_wrapper(18, 18, NeighLevel, V, F, C, A, R);
 		break;
+	
 	case NumericalOptimizations::InitAuxVar::CYLINDER_AUTO_ALIGNED_TO_NORMAL:
 		//TODO: implement the function
 		NumericalOptimizations::InitAuxVar::cylinder_fit_wrapper(18, 18, NeighLevel, V, F, C, A, R);
@@ -202,6 +213,7 @@ void MeshSimplificationData::initMinimizers(
 		for (int i = 0; i < C.rows(); i++)
 			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
 		break;
+	
 	case NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL:
 		R.setConstant(manual_radius_value);
 		for (int i = 0; i < C.rows(); i++)
@@ -209,6 +221,16 @@ void MeshSimplificationData::initMinimizers(
 		for (int fi = 0; fi < F.rows(); fi++)
 			A.row(fi) = manual_cylinder_dir.normalized();
 		break;
+
+	case NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_PER_FACE_ALIGNED_TO_NORMAL:
+		for (int fi = 0; fi < F.rows(); fi++) {
+			A.row(fi) = manual_A.row(fi).normalized();
+			R(fi) = manual_R(fi);
+		}
+		for (int i = 0; i < C.rows(); i++)
+			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);	
+		break;
+
 	case NumericalOptimizations::InitAuxVar::CYLINDER_VECTOR_HELPER_ALIGNED_TO_NORMAL:
 		R.setConstant(manual_radius_value);
 		for (int i = 0; i < C.rows(); i++)

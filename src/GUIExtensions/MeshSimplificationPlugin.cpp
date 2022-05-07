@@ -5,6 +5,7 @@
 #include <igl/writeOFF.h>
 #include <igl/boundary_loop.h>
 #include <igl/readOFF.h>
+#include <igl/writeOFF.h>
 #include <igl/adjacency_matrix.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 
@@ -28,9 +29,16 @@ IGL_INLINE void MeshSimplificationPlugin::init(igl::opengl::glfw::Viewer *_viewe
 	UserInterface_UpdateAllOutputs = false;
 	CollapsingHeader_change = false;
 	neighbor_distance = brush_radius = 0.3;
-	helper_vector_dir[0] = manual_cylinder_dir[0] = 1;
-	helper_vector_dir[1] = manual_cylinder_dir[1] = 0;
-	helper_vector_dir[2] = manual_cylinder_dir[2] = 0;
+	manual_A_per_face[0] = helper_vector_dir[0] = manual_cylinder_dir[0] = 1;
+	manual_A_per_face[1] = helper_vector_dir[1] = manual_cylinder_dir[1] = 0;
+	manual_A_per_face[2] = helper_vector_dir[2] = manual_cylinder_dir[2] = 0;
+	manual_R_per_face = 0.1;
+	manual_A.resize(original_F.rows(), 3);
+	manual_A.setZero();
+	manual_A.col(0).setConstant(1);
+	manual_R.resize(original_F.rows());
+	manual_R.setConstant(0.1);
+	
 	init_aux_var_type = NumericalOptimizations::InitAuxVar::SPHERE_MANUAL_ALIGNED_TO_NORMAL;
 	IsMouseDraggingAnyWindow = false;
 	isAnyMinimizerRunning = false;
@@ -469,10 +477,53 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 			init_aux_variables();
 		if (ImGui::DragFloat3("helper dir", helper_vector_dir))
 			init_aux_variables();
+		if (ImGui::DragFloat3("manual A", manual_A_per_face))
+			init_aux_variables();
+		if (ImGui::DragFloat("manual R", &manual_R_per_face))
+			init_aux_variables();
 		if (ImGui::DragInt("Neigh. level", &(InitMinimizer_NeighLevel))) {
 			InitMinimizer_NeighLevel = std::max(InitMinimizer_NeighLevel, 1);
 			init_aux_variables();
 		}
+
+		if (ImGui::Button("save Cylinder init")) {
+			Eigen::MatrixXi F;
+			Eigen::MatrixXd matrix_R;
+			F.setConstant(1, 3, 1);
+			matrix_R.resize(original_F.rows(), 3);
+			matrix_R.setZero();
+			matrix_R.col(0) = manual_R;
+			if (!igl::writeOFF((modelName + "_init_A.off").c_str(),manual_A, F)) {
+				std::cerr << "Error: writeOFF A failed!" << std::endl;
+				exit(1);
+			}
+			if (!igl::writeOFF((modelName + "_init_R.off").c_str(), matrix_R, F)) {
+				std::cerr << "Error: writeOFF R failed!" << std::endl;
+				exit(1);
+			}
+		}
+		if (ImGui::Button("load Cylinder init A")) {
+			Eigen::MatrixXi F;
+			std::string mesh_path = igl::file_dialog_open();
+			if (!igl::readOFF(mesh_path, manual_A, F)) {
+				std::cerr << "Error: readOFF failed!" << std::endl;
+				exit(1);
+			}
+			init_aux_variables();
+		}
+		if (ImGui::Button("load Cylinder init R")) {
+			Eigen::MatrixXi F;
+			Eigen::MatrixXd matrix_R;
+			std::string mesh_path = igl::file_dialog_open();
+			if (!igl::readOFF(mesh_path, matrix_R, F)) {
+				std::cerr << "Error: readOFF failed!" << std::endl;
+				exit(1);
+			}
+			manual_R = matrix_R.col(0);
+			init_aux_variables();
+		}
+		
+		
 
 
 			
@@ -1089,7 +1140,7 @@ void MeshSimplificationPlugin::add_output()
 	const int index = Outputs.size();
 	const int coreID = viewer->append_core(Eigen::Vector4f(0, 0, 0, 0) /*viewport*/);
 	const int meshID = viewer->append_mesh();
-	Outputs.push_back(GUIExtensions::MeshSimplificationData(coreID, meshID, viewer));
+	Outputs.push_back(GUIExtensions::MeshSimplificationData(original_V, original_F, coreID, meshID, viewer));
 	core_size = 1.0 / (Outputs.size() + 1.0);
 	
 	viewer->data(Outputs[index].ModelID).clear();
@@ -1212,7 +1263,16 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 		}
 		return true;
 	}
-	
+	if (ui.isBrushingCylinder() && pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
+		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
+		for (int fi : brush_faces) {
+			//manual_A.row(fi) << manual_A_per_face[0], manual_A_per_face[1], manual_A_per_face[2];
+			manual_R(fi) = manual_R_per_face;
+		}
+		init_aux_variables();
+		return true;
+	}
+
 	int output_index, vertex_index;
 	if (ui.isUsingDFS() && pick_vertex(output_index, vertex_index)) {
 		ui.updateVerticesListOfDFS(InputModel().F, InputModel().V.rows(), vertex_index);
@@ -1338,6 +1398,12 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_down(int button, int modifier)
 	if (ui.status == app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_DECR && RightClick) {
 		if (pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
 			ui.ADD_DELETE = DELETE;
+			ui.isActive = true;
+		}
+	}
+	if (ui.status == app_utils::UserInterfaceOptions::FIX_FACES_FOR_CYLINDER_INIT && LeftClick) {
+		if (pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
+			ui.ADD_DELETE = ADD;
 			ui.isActive = true;
 		}
 	}
@@ -1469,23 +1535,48 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 
 IGL_INLINE bool MeshSimplificationPlugin::key_down(int key, int modifiers)
 {
-	if (key == '1')
-		ui.status = app_utils::UserInterfaceOptions::FIX_VERTICES;
-	else if (key == '2')
-		ui.status = app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_INCR;
-	else if (key == '3')
-		ui.status = app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_DECR;
-	else if (key == '4')
-		ui.status = app_utils::UserInterfaceOptions::ADJ_WEIGHTS;
-	else if (key == '5')
-		ui.status = app_utils::UserInterfaceOptions::FIX_FACES;
+	if (key == '1') {
+		if(ui.status != app_utils::UserInterfaceOptions::FIX_VERTICES)
+			ui.status = app_utils::UserInterfaceOptions::FIX_VERTICES;
+		else
+			ui.status = app_utils::UserInterfaceOptions::NONE;
+	}
+	if (key == '2') {
+		if(ui.status != app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_INCR)
+			ui.status = app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_INCR;
+		else
+			ui.status = app_utils::UserInterfaceOptions::NONE;
+	}
+	if (key == '3') {
+		if(ui.status != app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_DECR)
+			ui.status = app_utils::UserInterfaceOptions::BRUSH_WEIGHTS_DECR;
+		else
+			ui.status = app_utils::UserInterfaceOptions::NONE;
+	}
+	if (key == '4') {
+		if(ui.status != app_utils::UserInterfaceOptions::ADJ_WEIGHTS)
+			ui.status = app_utils::UserInterfaceOptions::ADJ_WEIGHTS;
+		else
+			ui.status = app_utils::UserInterfaceOptions::NONE;
+	}
+	if (key == '5') {
+		if(ui.status != app_utils::UserInterfaceOptions::FIX_FACES)
+			ui.status = app_utils::UserInterfaceOptions::FIX_FACES;
+		else
+			ui.status = app_utils::UserInterfaceOptions::NONE;
+	}
+	if (key == '6') {
+		if(ui.status != app_utils::UserInterfaceOptions::FIX_FACES_FOR_CYLINDER_INIT)
+			ui.status = app_utils::UserInterfaceOptions::FIX_FACES_FOR_CYLINDER_INIT;
+		else
+			ui.status = app_utils::UserInterfaceOptions::NONE;
+	}
 	
 	return ImGuiPlugin::key_down(key, modifiers);
 }
 
 IGL_INLINE bool MeshSimplificationPlugin::key_up(int key, int modifiers)
 {
-	ui.status = app_utils::UserInterfaceOptions::NONE;
 	return ImGuiPlugin::key_up(key, modifiers);
 }
 
@@ -1951,7 +2042,9 @@ void MeshSimplificationPlugin::init_aux_variables()
 			InitMinimizer_NeighLevel,
 			manual_radius_value,
 			Eigen::RowVector3d(manual_cylinder_dir[0], manual_cylinder_dir[1], manual_cylinder_dir[2]),
-			Eigen::RowVector3d(helper_vector_dir[0], helper_vector_dir[1], helper_vector_dir[2])
+			Eigen::RowVector3d(helper_vector_dir[0], helper_vector_dir[1], helper_vector_dir[2]),
+			manual_A,
+			manual_R
 		);
 }
 
