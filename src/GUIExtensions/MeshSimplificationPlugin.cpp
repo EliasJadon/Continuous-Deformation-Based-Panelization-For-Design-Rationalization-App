@@ -181,7 +181,7 @@ void MeshSimplificationPlugin::CollapsingHeader_user_interface()
 	if (!ImGui::CollapsingHeader("User Interface"))
 	{
 		ImGui::Checkbox("Update UI together", &UserInterface_UpdateAllOutputs);
-		ImGui::Combo("Neighbor type", (int *)(&neighbor_Type), "Curr Face\0Local Sphere\0Global Sphere\0Local Normals\0Global Normals\0\0");
+		ImGui::Combo("Neighbor type", (int *)(&neighbor_Type), "Curr Face\0Local Sphere\0Global Sphere\0Local Normals\0Global Normals\0Local Cylinder\0Global Cylinder\0\0");
 		ImGui::DragFloat("Neighbors Distance", &neighbor_distance, 0.0005f, 0.00001f, 10000.0f,"%.5f");
 		ImGui::DragFloat("Brush Radius", &brush_radius);
 		if (ImGui::Button("Clear sellected faces & vertices"))
@@ -378,7 +378,7 @@ void MeshSimplificationPlugin::CollapsingHeader_clustering()
 	if (ImGui::CollapsingHeader("Clustering"))
 	{
 		CollapsingHeader_curr[3] = true;
-		ImGui::Combo("Face Colors Type", (int*)(&face_coloring_Type), "No Colors\0Normals Clustering\0Spheres Clustering\0Sigmoid Parameter\0\0");
+		ImGui::Combo("Face Colors Type", (int*)(&face_coloring_Type), "No Colors\0Normal\0Sphere\0Cylinder\0Sigmoid Parameter\0\0");
 		ImGui::DragFloat("Bright. Weight", &clustering_brightness_w, 0.001f, 0, 1);
 		if (ImGui::Combo("Clus. type", (int*)(&clusteringType), "None\0Circle Clus.\0Agglomerative hierarchical\0External Clus.\0")
 			|| ImGui::DragFloat("MSE threshold", &Clustering_MSE_Threshold, 0.000001f, 0, 1, "%.8f")) {
@@ -1359,12 +1359,6 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_down(int button, int modifier)
 	ui.down_mouse_x = viewer->current_mouse_x;
 	ui.down_mouse_y = viewer->current_mouse_y;
 	
-	if (ui.status == app_utils::UserInterfaceOptions::FIX_FACES && LeftClick) {
-		//////..............
-	}
-	if (ui.status == app_utils::UserInterfaceOptions::FIX_FACES && RightClick) {
-		//////..............
-	}
 	if (ui.status == app_utils::UserInterfaceOptions::FIX_VERTICES && LeftClick)
 	{
 		if (pick_vertex(ui.Output_Index, ui.Vertex_Index) && ui.Output_Index != INPUT_MODEL_SCREEN) {
@@ -1428,6 +1422,28 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 {
 	if ((key == 'c' || key == 'C') && modifiers == 1)
 		clear_sellected_faces_and_vertices();
+	
+	if ((key == 'x' || key == 'X') && modifiers == 1) {
+		if (face_coloring_Type == app_utils::Face_Colors::NO_COLORS) 
+		{
+			face_coloring_Type = app_utils::Face_Colors::SIGMOID_PARAMETER;
+		}
+		else if (face_coloring_Type == app_utils::Face_Colors::SIGMOID_PARAMETER) 
+		{
+			face_coloring_Type = app_utils::Face_Colors::NO_COLORS;
+			if (neighbor_Type == app_utils::Neighbor_Type::LOCAL_NORMALS)
+				face_coloring_Type = app_utils::Face_Colors::NORMAL;
+			if (neighbor_Type == app_utils::Neighbor_Type::LOCAL_SPHERE)
+				face_coloring_Type = app_utils::Face_Colors::SPHERE;
+			if (neighbor_Type == app_utils::Neighbor_Type::LOCAL_CYLINDERS)
+				face_coloring_Type = app_utils::Face_Colors::CYLINDER;
+		}
+		else 
+		{
+			face_coloring_Type = app_utils::Face_Colors::NO_COLORS;
+		}
+	}
+
 	if ((key == 'f' || key == 'F') && modifiers == 1) {
 		if (viewer->data_list[0].show_faces == false) {
 			for (auto& out : Outputs) {
@@ -1510,7 +1526,7 @@ IGL_INLINE bool MeshSimplificationPlugin::key_pressed(unsigned int key, int modi
 	}
 	if ((key == 'r' || key == 'R') && modifiers == 1)
 	{
-		neighbor_Type = app_utils::Neighbor_Type::LOCAL_SPHERE;
+		neighbor_Type = app_utils::Neighbor_Type::LOCAL_CYLINDERS;
 		face_coloring_Type = app_utils::Face_Colors::CYLINDER;
 		init_aux_var_type = NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL;
 		init_aux_variables();
@@ -1559,12 +1575,6 @@ IGL_INLINE bool MeshSimplificationPlugin::key_down(int key, int modifiers)
 	if (key == '4') {
 		if(ui.status != app_utils::UserInterfaceOptions::ADJ_WEIGHTS)
 			ui.status = app_utils::UserInterfaceOptions::ADJ_WEIGHTS;
-		else
-			ui.status = app_utils::UserInterfaceOptions::NONE;
-	}
-	if (key == '5') {
-		if(ui.status != app_utils::UserInterfaceOptions::FIX_FACES)
-			ui.status = app_utils::UserInterfaceOptions::FIX_FACES;
 		else
 			ui.status = app_utils::UserInterfaceOptions::NONE;
 	}

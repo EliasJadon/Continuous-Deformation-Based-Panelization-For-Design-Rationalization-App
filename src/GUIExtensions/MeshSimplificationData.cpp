@@ -17,13 +17,20 @@ MeshSimplificationData::MeshSimplificationData(
 	this->center_of_faces = OptimizationUtils::center_per_triangle(V, F);
 }
 
-std::vector<int> MeshSimplificationData::GlobNeighSphereCenters(
-	const int fi, 
-	const float distance) 
+std::vector<int> MeshSimplificationData::GlobNeighCylinders(const int fi, const float distance) 
 {
 	std::vector<int> Neighbors; Neighbors.clear();
 	for (int i = 0; i < C.rows(); i++)
-		if (((C.row(fi) - C.row(i)).norm() + abs(R(fi) - R(i))) < distance)
+		if (((C.row(fi) - C.row(i)).norm() + (A.row(fi) - A.row(i)).norm() + pow(R(fi) - R(i),2)) < distance)
+			Neighbors.push_back(i);
+	return Neighbors;
+}
+
+std::vector<int> MeshSimplificationData::GlobNeighSphereCenters(const int fi, const float distance) 
+{
+	std::vector<int> Neighbors; Neighbors.clear();
+	for (int i = 0; i < C.rows(); i++)
+		if (((C.row(fi) - C.row(i)).norm() + pow(R(fi) - R(i),2)) < distance)
 			Neighbors.push_back(i);
 	return Neighbors;
 }
@@ -63,10 +70,14 @@ std::vector<int> MeshSimplificationData::getNeigh(
 		return GlobNeighNorms(fi, distance);
 	if (type == app_utils::Neighbor_Type::GLOBAL_SPHERE)
 		return GlobNeighSphereCenters(fi, distance);
+	if (type == app_utils::Neighbor_Type::GLOBAL_CYLINDERS)
+		return GlobNeighCylinders(fi, distance);
 	if (type == app_utils::Neighbor_Type::LOCAL_NORMALS)
 		neigh = GlobNeighNorms(fi, distance);
-	else if (type == app_utils::Neighbor_Type::LOCAL_SPHERE)
+	if (type == app_utils::Neighbor_Type::LOCAL_SPHERE)
 		neigh = GlobNeighSphereCenters(fi, distance);
+	if (type == app_utils::Neighbor_Type::LOCAL_CYLINDERS)
+		neigh = GlobNeighCylinders(fi, distance);
 	
 	//pick only adjanced faces in order to get local faces
 	std::vector<int> result; result.push_back(fi);
