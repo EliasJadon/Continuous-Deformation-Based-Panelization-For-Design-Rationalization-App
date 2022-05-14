@@ -223,6 +223,16 @@ void MeshSimplificationData::initMinimizers(
 		R.setConstant(manual_radius_value);
 		for (int i = 0; i < C.rows(); i++)
 			C.row(i) = this->center_of_faces.row(i) - R(i) * N.row(i);
+		for (int fi = 0; fi < F.rows(); fi++) {
+			Eigen::RowVector3d N(N.row(fi));
+			Eigen::RowVector3d H(A.row(fi).normalized());
+			Eigen::RowVector3d B1(N.cross(H).normalized());
+			Eigen::RowVector3d B2(N.cross(B1).normalized());
+			if (B2.norm() == 0)
+				A.row(fi) = (V.row(F(fi, 1)) - V.row(F(fi,0))).normalized();
+			else
+				A.row(fi) = B2;
+		}
 		break;
 	
 	case NumericalOptimizations::InitAuxVar::CYLINDER_MANUAL_ALIGNED_TO_NORMAL:
@@ -259,15 +269,19 @@ void MeshSimplificationData::initMinimizers(
 		break;
 	}
 	
-	/*for (int ai = 1; ai < A.rows(); ai++) {
-		double a = (A.row(ai) - A.row(0)).squaredNorm();
-		double b = (A.row(ai) + A.row(0)).squaredNorm();
-		if (b < a) {
-			A.row(ai) = -A.row(ai);
+	/*std::vector<Eigen::Vector2d> h = OptimizationUtils::calculateHinges(F);
+	for (int rounds = 0; rounds < 5; rounds++) {
+		for (int hi = 0; hi < h.size(); hi++) {
+			int f1 = h[hi](0);
+			int f2 = h[hi](1);
+			double a = (A.row(f1) - A.row(f2)).squaredNorm();
+			double b = (A.row(f1) + A.row(f2)).squaredNorm();
+			if (b < a) {
+				A.row(f1) = -A.row(f1);
+			}
 		}
 	}*/
-
-
+	
 	minimizer->init(V, N, C, R, A);
 }
 

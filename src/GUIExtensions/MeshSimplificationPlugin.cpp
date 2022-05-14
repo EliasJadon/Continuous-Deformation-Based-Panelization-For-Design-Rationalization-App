@@ -502,6 +502,10 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 				exit(1);
 			}
 		}
+		if (ImGui::Button("Copy A & R")) {
+			manual_A = Outputs[0].A;
+			manual_R = Outputs[0].R;
+		}
 		if (ImGui::Button("load Cylinder init A")) {
 			Eigen::MatrixXi F;
 			std::string mesh_path = igl::file_dialog_open();
@@ -521,6 +525,24 @@ void MeshSimplificationPlugin::CollapsingHeader_minimizer()
 			}
 			manual_R = matrix_R.col(0);
 			init_aux_variables();
+		}
+
+		{
+			int f_index, out_index;
+			Eigen::Vector3f intersec_point;
+			bool ret = pick_face(out_index, f_index, intersec_point);
+			if (ret && f_index >= 0 && f_index < original_F.rows() && out_index >= 0 && out_index < Outputs.size()) {
+				double Ax = Outputs[out_index].A(f_index, 0);
+				double Ay = Outputs[out_index].A(f_index, 1);
+				double Az = Outputs[out_index].A(f_index, 2);
+				double r = Outputs[out_index].R(f_index);
+
+				char temp[200];
+				sprintf_s(temp, "A=(%f, %f ,%f)", Ax, Ay, Az);
+				ImGui::Text(temp);
+				sprintf_s(temp, "R=%f", r);
+				ImGui::Text(temp);
+			}
 		}
 		
 		

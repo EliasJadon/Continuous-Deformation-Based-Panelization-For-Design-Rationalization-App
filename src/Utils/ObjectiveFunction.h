@@ -249,6 +249,49 @@ namespace OptimizationUtils
 		return -1;
 	}
 
+	static std::vector<Eigen::Vector2d> calculateHinges(const Eigen::MatrixX3i restShapeF) {
+		std::vector<std::vector<std::vector<int>>> TT;
+		igl::triangle_triangle_adjacency(restShapeF, TT);
+		assert(TT.size() == restShapeF.rows());
+		std::vector<Eigen::Vector2d> hinges_faceIndex;
+		hinges_faceIndex.clear();
+
+		///////////////////////////////////////////////////////////
+		//Part 1 - Find unique hinges
+		for (int fi = 0; fi < TT.size(); fi++) {
+			std::vector< std::vector<int>> CurrFace = TT[fi];
+			assert(CurrFace.size() == 3 && "Each face should be a triangle (not square for example)!");
+			for (std::vector<int> hinge : CurrFace) {
+				if (hinge.size() == 1) {
+					//add this "hinge"
+					int FaceIndex1 = fi;
+					int FaceIndex2 = hinge[0];
+
+					if (FaceIndex2 < FaceIndex1) {
+						//Skip
+						//This hinge already exists!
+						//Empty on purpose
+					}
+					else {
+						hinges_faceIndex.push_back(Eigen::Vector2d(FaceIndex1, FaceIndex2));
+					}
+				}
+				else if (hinge.size() == 0) {
+					//Skip
+					//This triangle has no another adjacent triangle on that edge
+					//Empty on purpose
+				}
+				else {
+					//We shouldn't get here!
+					//The mesh is invalid
+					assert("Each triangle should have only one adjacent triangle on each edge!");
+				}
+
+			}
+		}
+		return hinges_faceIndex;
+	}
+
 	static int getNumberOfHinges(const Eigen::MatrixX3i restShapeF) {
 		std::vector<std::vector<std::vector<int>>> TT;
 		igl::triangle_triangle_adjacency(restShapeF, TT);
