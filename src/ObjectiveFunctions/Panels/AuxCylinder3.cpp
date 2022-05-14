@@ -27,12 +27,11 @@ double AuxCylinder3::value(Cuda::Array<double>& curr_x, const bool update)
 		double_3 C1 = getC(curr_x, f1);
 		double_3 A1 = getA(curr_x, f1);
 		double R1 = getR(curr_x, f1);
-		double_3 C10 = sub(C1, C0);
 
 		double diff =
-			pow(R1 - R0, 2) +
-			squared_norm(sub(A1, A0)) +
-			squared_norm(sub(C1, C0));
+			w_r * pow(R1 - R0, 2) +
+			w_a * squared_norm(sub(A1, A0)) +
+			w_c * squared_norm(sub(C1, C0));
 
 		value += w1 * restAreaPerHinge[hi] * weight_PerHinge.host_arr[hi] *
 			Phi(diff, Sigmoid_PerHinge.host_arr[hi], penaltyFunction);
@@ -79,29 +78,29 @@ void AuxCylinder3::gradient(Cuda::Array<double>& X, const bool update)
 		double R1 = getR(X, f1);
 
 		double diff =
-			pow(R1 - R0, 2) +
-			squared_norm(sub(A1, A0)) +
-			squared_norm(sub(C1, C0));
+			w_r * pow(R1 - R0, 2) +
+			w_a * squared_norm(sub(A1, A0)) +
+			w_c * squared_norm(sub(C1, C0));
 
 		double coeff = 2 * w1 * restAreaPerHinge[hi] * weight_PerHinge.host_arr[hi] *
 			dPhi_dm(diff, Sigmoid_PerHinge.host_arr[hi], penaltyFunction);
 
-		grad.host_arr[f1 + mesh_indices.startR] += (R1 - R0) * coeff; // R1
-		grad.host_arr[f0 + mesh_indices.startR] += (R0 - R1) * coeff; // R0
+		grad.host_arr[f1 + mesh_indices.startR] += w_r * (R1 - R0) * coeff; // R1
+		grad.host_arr[f0 + mesh_indices.startR] += w_r * (R0 - R1) * coeff; // R0
 
-		grad.host_arr[f1 + mesh_indices.startAx] += (A1.x - A0.x) * coeff; // A1.x
-		grad.host_arr[f1 + mesh_indices.startAy] += (A1.y - A0.y) * coeff; // A1.y
-		grad.host_arr[f1 + mesh_indices.startAz] += (A1.z - A0.z) * coeff; // A1.z
-		grad.host_arr[f0 + mesh_indices.startAx] += (A0.x - A1.x) * coeff; // A0.x
-		grad.host_arr[f0 + mesh_indices.startAy] += (A0.y - A1.y) * coeff; // A0.y
-		grad.host_arr[f0 + mesh_indices.startAz] += (A0.z - A1.z) * coeff; // A0.z
+		grad.host_arr[f1 + mesh_indices.startAx] += w_a * (A1.x - A0.x) * coeff; // A1.x
+		grad.host_arr[f1 + mesh_indices.startAy] += w_a * (A1.y - A0.y) * coeff; // A1.y
+		grad.host_arr[f1 + mesh_indices.startAz] += w_a * (A1.z - A0.z) * coeff; // A1.z
+		grad.host_arr[f0 + mesh_indices.startAx] += w_a * (A0.x - A1.x) * coeff; // A0.x
+		grad.host_arr[f0 + mesh_indices.startAy] += w_a * (A0.y - A1.y) * coeff; // A0.y
+		grad.host_arr[f0 + mesh_indices.startAz] += w_a * (A0.z - A1.z) * coeff; // A0.z
 
-		grad.host_arr[f1 + mesh_indices.startCx] += (C1.x - C0.x) * coeff; // C1.x
-		grad.host_arr[f1 + mesh_indices.startCy] += (C1.y - C0.y) * coeff; // C1.y
-		grad.host_arr[f1 + mesh_indices.startCz] += (C1.z - C0.z) * coeff; // C1.z
-		grad.host_arr[f0 + mesh_indices.startCx] += (C0.x - C1.x) * coeff; // C0.x
-		grad.host_arr[f0 + mesh_indices.startCy] += (C0.y - C1.y) * coeff; // C0.y
-		grad.host_arr[f0 + mesh_indices.startCz] += (C0.z - C1.z) * coeff; // C0.z
+		grad.host_arr[f1 + mesh_indices.startCx] += w_c * (C1.x - C0.x) * coeff; // C1.x
+		grad.host_arr[f1 + mesh_indices.startCy] += w_c * (C1.y - C0.y) * coeff; // C1.y
+		grad.host_arr[f1 + mesh_indices.startCz] += w_c * (C1.z - C0.z) * coeff; // C1.z
+		grad.host_arr[f0 + mesh_indices.startCx] += w_c * (C0.x - C1.x) * coeff; // C0.x
+		grad.host_arr[f0 + mesh_indices.startCy] += w_c * (C0.y - C1.y) * coeff; // C0.y
+		grad.host_arr[f0 + mesh_indices.startCz] += w_c * (C0.z - C1.z) * coeff; // C0.z
 	}
 	
 	for (int fi = 0; fi < mesh_indices.num_faces; fi++) {

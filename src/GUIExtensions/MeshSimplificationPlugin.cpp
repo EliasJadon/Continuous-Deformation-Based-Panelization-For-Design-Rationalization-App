@@ -906,6 +906,9 @@ void MeshSimplificationPlugin::Draw_energies_window()
 							ImGui::DragScalar("w1", ImGuiDataType_Double, &(AC3->w1), 0.05f, &f64_zero, &f64_max);
 							ImGui::DragScalar("w2", ImGuiDataType_Double, &(AC3->w2), 0.05f, &f64_zero, &f64_max);
 							ImGui::DragScalar("w3", ImGuiDataType_Double, &(AC3->w3), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w_a", ImGuiDataType_Double, &(AC3->w_a), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w_r", ImGuiDataType_Double, &(AC3->w_r), 0.05f, &f64_zero, &f64_max);
+							ImGui::DragScalar("w_c", ImGuiDataType_Double, &(AC3->w_c), 0.05f, &f64_zero, &f64_max);
 						}
 						if (AS != NULL && AS->penaltyFunction == Cuda::PenaltyFunction::SIGMOID) {
 							ImGui::Text(("2^" + std::to_string(int(log2(AS->get_SigmoidParameter())))).c_str());
@@ -1266,7 +1269,7 @@ IGL_INLINE bool MeshSimplificationPlugin::mouse_move(int mouse_x, int mouse_y)
 	if (ui.isBrushingCylinder() && pick_face(ui.Output_Index, ui.Face_index, ui.intersec_point)) {
 		const std::vector<int> brush_faces = Outputs[ui.Output_Index].FaceNeigh(ui.intersec_point.cast<double>(), brush_radius);
 		for (int fi : brush_faces) {
-			//manual_A.row(fi) << manual_A_per_face[0], manual_A_per_face[1], manual_A_per_face[2];
+			manual_A.row(fi) << manual_A_per_face[0], manual_A_per_face[1], manual_A_per_face[2];
 			manual_R(fi) = manual_R_per_face;
 		}
 		init_aux_variables();
