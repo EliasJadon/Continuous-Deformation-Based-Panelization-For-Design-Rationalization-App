@@ -2,14 +2,19 @@
 
 
 ## Parameters
-1. Lambda
+1. Numerical Optimizations
+    1. Initialization
+        1. Plane - It's always initialized to the face normals
+        3. Sphere
+            1. `type` - 
+            2. 'r' - Fixed radius length for all faces
+        5. Cylinder
+            1. We should supply `.obj` file 
+
+3. Lambda
     1. `Start_from`
     1. `Stop_at`
     1. `update_lambda_frequency`
-
-1. Init
-    1. `Type`
-    1. `Fixed_radius_value`
 
 1. Objective functions
     1. AuxCylinder1
