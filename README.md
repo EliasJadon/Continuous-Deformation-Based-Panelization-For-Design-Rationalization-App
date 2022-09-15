@@ -11,7 +11,7 @@ In our experiments, all the parameters get their default value except the follow
 
 Please refer to the following section for description of each parameter.
 
-## All Parameters
+## Parameters
 * Homotopy method (Lambda)
     * Lambda Init 
         1. `lambda_init` - initial value for lambda (default 2^0)
@@ -67,7 +67,15 @@ Please refer to the following section for description of each parameter.
     1. Uniform Smoothness
         1. `w` - objective function weight which is used at calculating the total objective function (default 0.05)
         
-        
+## Additional parameters
+Those parameters are used for:
+* objects-colors
+* hide/unhide objects
+* screen options
+* Mesh coloring methods
+* UI coloring/tools options
+* etc
+
 
 ## See the tutorial first
 
