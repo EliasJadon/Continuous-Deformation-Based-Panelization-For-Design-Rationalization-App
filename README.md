@@ -70,7 +70,7 @@ Please refer to the following section for description of each parameter.
 ## Additional parameters
 Those parameters don't effect the output mesh, their porpuse is to make the GUI user friendly.
 
-For example, we can control via the GUI the following:
+For example, we can control via the GUI the following parameters:
 * objects-colors
 * hide/unhide objects
 * screen options
