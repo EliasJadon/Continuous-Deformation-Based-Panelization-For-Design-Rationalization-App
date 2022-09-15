@@ -14,7 +14,7 @@
 * Homotopy method (Lambda)
     * Lambda Init 
         1. `lambda_init` - initial value for lambda (default 2^0)
-    * Automatic Lambda progression
+    * Automatic Lambda progression - the following parameters are dependent on the count of the optimization (e.g., ADAM, Newton, Gradient-Descent, etc.) iterations.
         1. `start_from_iter` - Skip first `start_from_iter` optimization iterations, then start halving lambda (default 100).
         1. `halve_per_iters` - Halve lambda every `halve_per_iters` optimization iterations (default 70). 
         1. `stop_halving_at` - Stop halving lambda when lambda value reaches the `stop_halving_at` value (default 2^-40).
