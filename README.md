@@ -20,7 +20,7 @@
         1. `stop_halving_at` - Stop halving lambda when lambda value reaches the `stop_halving_at` value (default 2^-40).
     
 
-* Objective functions
+* Objectives
     1. AuxCylinder1
         1. `w` - objective function weight which is used at calculating the total objective function (default 0)
         1. `w1`
@@ -51,7 +51,7 @@
     1. Planar
         1. `w` - objective function weight which is used at calculating the total objective function (default 0)
     1. STVK
-        1. `w - objective function weight which is used at calculating the total objective function (default 0)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
     1. Symmetric Dirichlet
         1. `w` - objective function weight which is used at calculating the total objective function (default 0.5)
     1. Pin Vertices
