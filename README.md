@@ -68,7 +68,8 @@ Please refer to the following section for description of each parameter.
         1. `w` - objective function weight which is used at calculating the total objective function (default 0.05)
         
 ## Additional parameters
-Those parameters are used for:
+Those parameters don't effect the output mesh, their porpuse is to make the GUI user friendly.
+For example, we can contrlo via the GUI the following:
 * objects-colors
 * hide/unhide objects
 * screen options
