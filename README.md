@@ -22,17 +22,17 @@
 
 1. Objective functions
     1. AuxCylinder1
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
         1. `w1`
         1. `w2`
         1. `w3`
     1. AuxCylinder2
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
         1. `w1`
         1. `w2`
         1. `w3`
     1. AuxCylinder3
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
         1. `w1`
         1. `w2`
         1. `w3`
@@ -40,31 +40,31 @@
         1. `w_r`
         1. `w_c`
     1. AuxSphere
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
         1. `w1`
         1. `w2`
     1. AuxPlanar
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
         1. `w1`
         1. `w2` 
         1. `w3`
     1. Planar
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
     1. STVK
-        1. `w` - total weight (float)
+        1. `w - objective function weight which is used at calculating the total objective function (default 0)
     1. Symmetric Dirichlet
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0.5)
     1. Pin Vertices
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0.3)
     1. Pin Chosen Vertices
-        1. `w` - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 500)
     1. Round Radius
-        1. `w`      - total weight (flaot)
-        1. `min`    - Min available radius (unsigned int)
-        1. `max`    - Max available radius (unsigned int)
-        1. `alpha`  - Scale Radius (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0)
+        1. `min`    - Min available radius (default 2)
+        1. `max`    - Max available radius (default 10)
+        1. `alpha`  - Scale Radius (default 23)
     1. Uniform Smoothness
-        1. `w`      - total weight (float)
+        1. `w` - objective function weight which is used at calculating the total objective function (default 0.05)
         
         
 
