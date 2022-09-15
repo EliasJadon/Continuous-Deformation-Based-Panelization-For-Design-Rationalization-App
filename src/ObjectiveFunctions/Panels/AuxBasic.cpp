@@ -9,7 +9,7 @@ AuxBasic::AuxBasic(
 	const Eigen::MatrixX3i& F,
 	const Cuda::PenaltyFunction penaltyFunction) : ObjectiveFunctions::Basic{ V,F }
 {
-	w = 1;
+	w = 0;
 	name = "Aux Basic";
 
 	//Initialize rest variables (X0) m
