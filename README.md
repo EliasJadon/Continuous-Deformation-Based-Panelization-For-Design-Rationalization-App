@@ -1,7 +1,57 @@
-# Mesh Simplification project
-A blank project example showing how to use libigl and cmake. Feel free and
-encouraged to copy or fork this project as a way of starting a new personal
-project using libigl.
+# Continuous deformation based panelization for design rationalization
+
+
+## Parameters
+1. Lambda
+    1. Start from
+    1. Stop at
+    1. update lambda frequency
+
+1. Init
+    1. Type
+    1. Fixed radius value
+
+1. Objective functions
+    1. AuxCylinder1
+        1. total weight (float)
+        1. w1
+        1. w2
+        1. w3
+    1. AuxCylinder2
+        1. total weight (float)
+        1. w1
+        1. w2
+        1. w3
+    1. AuxCylinder3
+        1. total weight (float)
+        1. w1
+        1. w2
+        1. w3
+        1. w_a
+        1. w_r
+        1. w_c
+    1. AuxSphere
+        1. total weight (float)
+        1. w1
+        1. w2
+    1. AuxPlanar
+        1. total weight (float)
+        1. w1
+        1. w2 
+        1. w3
+    1. Planar - total weight (float)
+    1. STVK - total weight (float)
+    1. Symmetric Dirichlet - total weight (float)
+    1. Pin Vertices - total weight (float)
+    1. Pin Chosen Vertices - total weight (float)
+    1. Round Radius
+        1. total weight (flaot)
+        1. Min available radius (unsigned int)
+        1. Max available radius (unsigned int)
+        1. Scale Radius (float)
+    1. Uniform Smoothness - total weight (float)
+        
+        
 
 ## See the tutorial first
 
