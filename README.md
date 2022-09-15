@@ -11,10 +11,14 @@
         5. Cylinder
             1. We should supply `.obj` file 
 
-3. Lambda
-    1. `Start_from`
-    1. `Stop_at`
-    1. `update_lambda_frequency`
+3. Homotopy method (Lambda)
+    1. Lambda Init 
+        1. `lambda_init` - initial value for lambda (default 2^0)
+    1. Lambda progression
+        1. `start_from_iteration` - Skip first `start_from_iteration` optimization iterations, then start halving lambda (default 100).
+        1. `halve_per_iters` - Halve lambda every `halve_per_iters` optimization iterations (default 70). 
+        1. `stop_at` - Keep halving lambda until it reaches the `stop_at` value (default 2^-40).
+    
 
 1. Objective functions
     1. AuxCylinder1
