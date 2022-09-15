@@ -1,26 +1,17 @@
 # Continuous Deformation Based Panelization For Design Rationalization App
 
-## Dominant Parameters
+## Reproducibility
 In our experiments, all the parameters get their default value except the following:
 1. `halve_per_iters`
 2. `w` (per objective)
 3. init auxiliary variables
    1. Plane - It's always initialized to the face normals 
    1. Sphere - we use minus normal method, but the radius varies (it's fixed for all faces)
-   2. Cylinder - we supply an obj file that conatains the auxiliary variables init values per face 
+   2. Cylinder - we supply an `.obj` file that conatains the auxiliary variables init values per face 
 
-Please refer to the following section for describtion of each parameter.
+Please refer to the following section for description of each parameter.
 
 ## All Parameters
-* Numerical Optimizations
-    * Initialization
-        * Plane - It's always initialized to the face normals
-        * Sphere
-            1. `type` - 
-            2. 'r' - Fixed radius length for all faces
-        * Cylinder
-            1. We should supply `.obj` file 
-
 * Homotopy method (Lambda)
     * Lambda Init 
         1. `lambda_init` - initial value for lambda (default 2^0)
