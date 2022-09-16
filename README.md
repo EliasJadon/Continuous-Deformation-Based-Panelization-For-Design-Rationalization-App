@@ -3,8 +3,8 @@
 ## Results & Reproducibility
 You can find our results at `results` folder.
 We attach additional files for reproducibility, the files are:
-   1. `README.md` file - has the non default parameters
-   1. `init_A.off` + `init_R.off` files - has the init values for the auxiliary variables (in case of cylinders)
+   1. `README.md` file - has the non default parameters` values
+   1. `init_A.off` + `init_R.off` files - has the initial values for the auxiliary variables (in case of cylinders)
 
 ## Parameters
 * Homotopy method (Lambda)
