@@ -1,9 +1,9 @@
 # Continuous Deformation Based Panelization For Design Rationalization App
 
 ## Results & Reproducibility
-You can find our results at 'results' folder.
+You can find our results at `results` folder.
 We attach additional files for reproducibility, the files are:
-   1. `README.md` file - has the non-default parameters
+   1. `README.md` file - has the non default parameters
    1. `init_A.off` + `init_R.off` files - has the init values for the auxiliary variables (in case of cylinders)
 
 ## Parameters
