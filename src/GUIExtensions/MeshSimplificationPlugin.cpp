@@ -722,11 +722,11 @@ void MeshSimplificationPlugin::Draw_energies_window()
 		ImGui::TableNextColumn();
 		ImGui::Text("On/Off");
 		ImGui::TableNextColumn(); 
-		ImGui::Text("Start from");
+		ImGui::Text("start_from_iter");
 		ImGui::TableNextColumn(); 
-		ImGui::Text("Stop at");
+		ImGui::Text("stop_halving_at");
 		ImGui::TableNextColumn(); 
-		ImGui::Text("#iter//lambda");
+		ImGui::Text("halve_per_iters");
 		ImGui::TableNextColumn(); 
 		ImGui::Text("#iter");
 		ImGui::TableNextColumn(); 
